@@ -1,0 +1,9 @@
+{"qmdata": {"mem": 20,
+	    "cpu": 12,
+	    "functional": "B3PW91",
+            "basis": "gen 6D 10F empiricaldispersion=gd3bj",
+            "molchr": 0,
+            "molspn": 1,
+            "addroot": "freq=vcd ",
+            "addline": "@/home/m.fuse/basis/SNSD.gbs"}
+}
