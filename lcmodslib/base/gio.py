@@ -1,3 +1,5 @@
+import os
+import numpy as np
 from estampes.parser import DataFile, build_qlabel
 from estampes.tools.atom import convert_labsymb
 from estampes.data.physics import PHYSFACT

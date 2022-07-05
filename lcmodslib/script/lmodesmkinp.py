@@ -9,13 +9,14 @@ Example of Json
                     "addline": "@/home/m.fuse/basis/SNSD.gbs"}
                     }
 """
-
 import os
 import sys
 import argparse
 import copy
 import json
 import warnings
+
+from estampes.data.atom import atomic_data
 
 from lcmodslib.base import gio
 from lcmodslib.base import gmanip
@@ -42,21 +43,61 @@ def build_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('fname', type=str, help="The gaussian log file with the equilibrium geometry")
     parser.add_argument('optfile', nargs='?', help='option file in json with QM options')
-    parser.add_argument('patom', default=1, type=int,
-                        help='Pivot atom on the solute around which look for solvent molecules')
-    parser.add_argument('solattype', defoult='OW', type=str,
-                        help='atom type of the solvent to search (es. "OW")')
-    parser.add_argument('-ns', '--nsolvent', default=0, type=int,
-                        help='number of solvent molecule to be included in QM')
-    txt = """Reference frame type:
-        single: only one frame used usually the cluster centroid
-        all: all the frame in the trajectory
-        """
-    parser.add_argument('-m', '--mode', choices=['single', 'all'],
-                        default='single', help=txt)
-    parser.add_argument('--frame', default=-1, type=int, help='the frame to be\
-                        used as reference in single mode')
-    parser.add_argument('-p', '--prefix', default='fromtraj',
-                        type=str, help='prefix name for the output files')
+    parser.add_argument('xatoms', nargs='?', default='C', type=str,
+                        help='X Atom type of XH bond')
+    parser.add_argument('--minpos', type=float, default=-0.33,
+                        help="Minimum position in angstrom")
+    parser.add_argument('--nstep', type=int, default=55,
+                        help="Number of steps from the minimum position")
+    parser.add_argument('--stepsize', type=float, default=0.016,
+                        help="step size in angstrom")
+    parser.add_argument('-w', '--where', type=str,
+                        help="whare write the input files")
+    parser.add_argument('--prefix', type=str,
+                        help="prefix to add to the input files")
     parser.add_argument('--silent', action='store_true', help="Suppres almost all the printing")
     return parser
+
+
+def main():
+    par = build_parser()
+    opts = par.parse_args()
+    try:
+        moldata = gio.get_mol_data(opts.fname)
+    except FileNotFoundError:
+        print(f"{opts.fname} Not Found")
+        sys.exit()
+    try:
+        qmopts = read_optfile(opts.optfile)['qmdata']
+    except FileNotFoundError:
+        print("JSON file not found")
+        sys.exit()
+    if not opts.where:
+        path = "."
+    else:
+        path = opts.where
+    if not os.path.exists(path):
+        print(f'{path} not exist. Created.')
+        os.mkdir(path)
+    hxobj = gmanip.XHstreching(moldata['atnum'],
+                               moldata['atcrd'], opts.xatoms)
+    if not len(hxobj.hxbonds):
+        print(f"No {opts.xatoms}-H bonds found")
+        sys.exit()
+    if opts.prefix is None:
+        prefix = "lmodes"
+    else:
+        prefix = opts.prefix
+
+    lbonds = hxobj.hxbonds
+    for bond in lbonds:
+        bprefix = prefix + f"_bond_HC_{bond[0]+1:02d}_{bond[1]+1:02d}"
+        tmpgeoms = hxobj.scanhx(bond, lower=opts.minpos,
+                                step=opts.stepsize, nstep=opts.nstep)
+        gio.write_gjf(hxobj.atlab, tmpgeoms, qmopts, out_file=bprefix, where=path)
+
+
+
+
+if __name__ == '__main__':
+    main()

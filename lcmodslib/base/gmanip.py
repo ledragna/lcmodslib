@@ -1,6 +1,11 @@
 """
 Class to manipulate the geometries
 """
+import numpy as np
+
+from estampes.tools.atom import convert_labsymb
+from estampes.data.atom import atomic_data
+from scipy.spatial import distance_matrix
 
 class LocalMolecule():
     """

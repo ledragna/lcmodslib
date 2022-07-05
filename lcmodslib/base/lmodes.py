@@ -1,4 +1,5 @@
 import numpy as np
+from estampes.data.atom import atomic_data
 
 class LmodDeriv():
     
