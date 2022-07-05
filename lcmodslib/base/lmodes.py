@@ -1,5 +1,6 @@
 import numpy as np
 from estampes.data.atom import atomic_data
+from estampes.tools.atom import convert_labsymb
 
 class LmodDeriv():
     
@@ -277,6 +278,39 @@ class LocalModes():
             print(line.format(a=bnx, b=self._res[bnx]['frq'][quanta-1],
                               c=self._res[bnx]['ds'][quanta-1],
                               d=self._res[bnx]['rs'][quanta-1]))
+
+
+    def lmodes2string(self, maxquanta):
+        """
+        """
+        string = ""
+        string += "#{:^6s}{:^8s}{:^9s}{:^12s}{:^12s}\n".format("Qnt","Bond", "Freq.", "DS", "RS")
+        line =" {e:^6d}{a[0]:^4d}{a[1]:^4d}{b:9.2f}{c:12.4E}{d:12.4E}\n"
+        for qnt in range(maxquanta):
+            for bnx in self._bnd:
+                bnxt = [x+1 for x in list(bnx)]
+                string += line.format(a=bnxt,
+                                      b=self._res[bnx]['frq'][qnt],
+                                      c=self._res[bnx]['ds'][qnt],
+                                      d=self._res[bnx]['rs'][qnt],
+                                      e=qnt+1)
+        return string
+
+    def omgchi2string(self):
+        """
+        
+        """
+        string = ""
+        string += "#{:^8s}{:^9s}{:^9s}\n".format("Bond", "Omega", "Chi")
+        line = " {a[0]:^4d}{a[1]:^4d}{b:9.2f}{c:9.2f}\n"
+        for bnx in self._bnd:
+            bnxt = [x+1 for x in list(bnx)]
+            string += line.format(a=bnxt,
+                                  b=self._res[bnx]['omega'],
+                                  c=self._res[bnx]['chi'])
+        return string
+
+ 
     
     def get_lmodes(self, spctyp, quanta):
         eng = []

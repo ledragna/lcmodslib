@@ -6,7 +6,9 @@ Example of Json
                     "molchr": 0,
                     "molspn": 1,
                     "addroot": "freq=vcd ",
-                    "addline": "@/home/m.fuse/basis/SNSD.gbs"}
+                    "addline": "@/home/m.fuse/basis/SNSD.gbs"},
+                    "mem": 20,
+                    "cpu": 12
                     }
 """
 import os
@@ -47,15 +49,15 @@ def build_parser():
                         help='X Atom type of XH bond')
     parser.add_argument('--minpos', type=float, default=-0.33,
                         help="Minimum position in angstrom")
-    parser.add_argument('--nstep', type=int, default=55,
+    parser.add_argument('--nstep', type=int, default=13,
                         help="Number of steps from the minimum position")
-    parser.add_argument('--stepsize', type=float, default=0.016,
+    parser.add_argument('--stepsize', type=float, default=0.064,
                         help="step size in angstrom")
     parser.add_argument('-w', '--where', type=str,
                         help="whare write the input files")
     parser.add_argument('--prefix', type=str,
                         help="prefix to add to the input files")
-    parser.add_argument('--silent', action='store_true', help="Suppres almost all the printing")
+    parser.add_argument('--silent', action='store_true', help="Suppress almost all the printing")
     return parser
 
 
