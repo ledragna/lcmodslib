@@ -1,7 +1,7 @@
 #!/bin/bash
 # author m.fuse
 # exe
-fchk=${GAUSS_EXEDIR}"/formchk"
+
 
 ### Functions ###
 Help()
@@ -28,24 +28,24 @@ check_integer (){
         fi
 }
 
-run_gaussian () {
-        local jxyz=$1
-        $GAUSS_EXEDIR/g16 ${jxyz}
-        trimfchk ${jxyz%gjf}chk
-}
-
 trimfchk () {
     local chkname=$1
     local fchkname=${chkname%.chk}.fchk
-    $GAUSS_EXEDIR/formchk $i 2>&1 > /dev/null
+    ${GAUSS_EXEDIR}/formchk $chkname 2>&1 > /dev/null
     awk '
         NR==1{flag1=1} /Atom fragment info /{flag1=0} flag1
         /Energy/
         /Cartesian Gradient/{flag2=1}/Nonadiabatic coupling/{flag2=0} flag2
         /Dipole Moment/{flag3=1} /NMR/{flag3=0} flag3
-    ' $fchk > ${fchk%.fchk}_trim.fchk
-    rm $fchk
-    rm $chk
+    ' $fchkname > ${fchkname%.fchk}_trim.fchk
+    rm $fchkname
+    rm $chkname
+}
+
+run_gaussian () {
+        local jxyz=$1
+        $GAUSS_EXEDIR/g16 ${jxyz}
+        trimfchk ${jxyz%gjf}chk
 }
 
 ### MAIN ###

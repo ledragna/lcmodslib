@@ -45,8 +45,8 @@ def build_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('fname', type=str, help="The gaussian log file with the equilibrium geometry")
     parser.add_argument('optfile', nargs='?', help='option file in json with QM options')
-    parser.add_argument('xatoms', nargs='?', default='C', type=str,
-                        help='X Atom type of XH bond')
+    parser.add_argument('xatoms', nargs='+', type=str,
+                        help='X Atom types of XH bond')
     parser.add_argument('--minpos', type=float, default=-0.33,
                         help="Minimum position in angstrom")
     parser.add_argument('--nstep', type=int, default=13,
@@ -81,6 +81,7 @@ def main():
     if not os.path.exists(path):
         print(f'{path} not exist. Created.')
         os.mkdir(path)
+
     hxobj = gmanip.XHstreching(moldata['atnum'],
                                moldata['atcrd'], opts.xatoms)
     if not len(hxobj.hxbonds):
@@ -92,8 +93,9 @@ def main():
         prefix = opts.prefix
 
     lbonds = hxobj.hxbonds
-    for bond in lbonds:
-        bprefix = prefix + f"_bond_HC_{bond[0]+1:02d}_{bond[1]+1:02d}"
+    xtps = hxobj.getsecatom()
+    for i, bond in enumerate(lbonds):
+        bprefix = prefix + f"_bond_H{xtps[i]:s}_{bond[0]+1:02d}_{bond[1]+1:02d}"
         tmpgeoms = hxobj.scanhx(bond, lower=opts.minpos,
                                 step=opts.stepsize, nstep=opts.nstep)
         gio.write_gjf(hxobj.atlab, tmpgeoms, qmopts, out_file=bprefix, where=path)

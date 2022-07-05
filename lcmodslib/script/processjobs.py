@@ -22,12 +22,12 @@ def build_parser():
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('fname', type=str, help="The gaussian log file with the equilibrium geometry")
-    parser.add_argument('xatoms', nargs='?', default='C', type=str,
-                        help='X Atom type of XH bond')
     parser.add_argument('folder', type=str,
                         help="folder where search fchk files")
     parser.add_argument('prefix', type=str,
                         help="prefix of the file names")
+    parser.add_argument('xatoms', nargs='+', type=str,
+                        help='X Atom types of XH bond')
     parser.add_argument('--quanta', type=int, default=3, choices=[1,2,3],
                         help="Max number of quanta")
     parser.add_argument('--nterms', type=int, default=3, choices=[1,2,3],
@@ -51,31 +51,30 @@ def main():
     if not os.path.exists(opts.folder):
         print(f'{opts.folder} not exist.')
         sys.exit()
-    hxobj = gmanip.XHstreching(moldata['atnum'],
-                               moldata['atcrd'], opts.xatoms)
+    for xatm in opts.xatoms:
+        hxobj = gmanip.XHstreching(moldata['atnum'],
+                                   moldata['atcrd'], opts.xatoms)
     
-    if not len(hxobj.hxbonds):
-        print(f"No {opts.xatoms}-H bonds found")
-        sys.exit()
-    if opts.prefix is None:
-        prefix = "lmodes"
-    else:
-        prefix = opts.prefix
+        if not len(hxobj.hxbonds):
+            print(f"No {opts.xatoms}-H bonds found")
+            sys.exit()
+        if opts.prefix is None:
+            prefix = "lmodes"
+        else:
+            prefix = opts.prefix
 
-    lbonds = hxobj.hxbonds
-    lmodesmol = gio.get_bondsdatatoobg(os.path.join(opts.folder, opts.prefix),
-                                       opts.xatoms, "trim", hxobj.atnum,
-                                       hxobj.refcrd, opts.nterms, *lbonds)
-    if opts.fout is None:
-        fout = prefix
-    else:
-        fout = self.fout
+        lmodesmol = gio.get_bondsdatatoobg(os.path.join(opts.folder, opts.prefix),
+                                           "trim", hxobj, opts.nterms)
+        if opts.fout is None:
+            fout = prefix
+        else:
+            fout = self.fout
 
-    # writes omega and chi
-    with open(fout+"_omegachi.dat", "w") as fopen:
-        fopen.write(lmodesmol.omgchi2string())
-    with open(fout+"_trns.dat", "w") as fopen:
-        fopen.write(lmodesmol.lmodes2string(opts.quanta))
+        # writes omega and chi
+        with open(fout+"_omegachi.dat", "w") as fopen:
+            fopen.write(lmodesmol.omgchi2string())
+        with open(fout+"_trns.dat", "w") as fopen:
+            fopen.write(lmodesmol.lmodes2string(opts.quanta))
 
 if __name__ == '__main__':
     main()

@@ -190,7 +190,7 @@ class XHstreching(LocalMolecule):
                 raise ValueError("Not in molecular system")
             _xtype.append(_x)
         self._xtypes = _xtype
-        self._hxbonds = self._get_ch_bonds()
+        self._get_ch_bonds()
         
     @property
     def hxbonds(self):
@@ -202,15 +202,18 @@ class XHstreching(LocalMolecule):
     
     def _get_ch_bonds(self):
         xhbonds = []
+        xtyplst = []
         hpos = np.where(np.array(self._atnum) == 1)[0]
         for i in hpos:
             _xindx = np.where(self._cref[i, :])[0][0]
             if self._atlab[_xindx] in self._xtypes:
                 xhbonds.append((i, _xindx))
+                xtyplst.append(self._atlab[_xindx])
         if not xhbonds:
             print(f"No bonds found with the selected atoms")
             raise ValueError("No Bonds selected")
-        return xhbonds
+        self._hxbonds = xhbonds
+        self._xtyplst = xtyplst
     
     def hxstretch(self, bndindx, step):
         """
@@ -252,3 +255,10 @@ class XHstreching(LocalMolecule):
             geoms.append(self.bondstretch(self._hxbonds[_bond], xstep))
         
         return geoms
+
+    def getsecatom(self, bond=None):
+        if bond is None:
+            return self._xtyplst
+        _bond = self._checkbond(bond)
+        return self._xtyplst[_bond]
+        

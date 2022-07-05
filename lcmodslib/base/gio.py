@@ -127,11 +127,13 @@ def get_fchk(fname):
     #res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(len(res['atnum']),3,3)
     return res
 
-def get_bondsdatatoobg(prefix, atype, suffix, atnums, atcrd, nterms, *bonds):
-    res = LocalModes(atnums, atcrd, nterms)
+def get_bondsdatatoobg(prefix, suffix, hxobj, nterms):
+    res = LocalModes(hxobj.atnum, hxobj.refcrd, nterms)
+    bonds = hxobj.hxbonds
     fname = prefix +"_bond_H{}_{:02d}_{:02d}_step"
     fname2 = prefix +"_bond_H{}_{:02d}_{:02d}_step{:03d}_"+suffix+".fchk"
     for bnd in bonds:
+        atype = hxobj.getsecatom(bnd)
         lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*")
         # print(lfiles)
         tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}

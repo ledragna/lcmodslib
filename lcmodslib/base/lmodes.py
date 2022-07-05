@@ -280,34 +280,39 @@ class LocalModes():
                               d=self._res[bnx]['rs'][quanta-1]))
 
 
-    def lmodes2string(self, maxquanta):
+    def lmodes2string(self, maxquanta, head=True):
         """
         """
         string = ""
-        string += "#{:^6s}{:^8s}{:^9s}{:^12s}{:^12s}\n".format("Qnt","Bond", "Freq.", "DS", "RS")
-        line =" {e:^6d}{a[0]:^4d}{a[1]:^4d}{b:9.2f}{c:12.4E}{d:12.4E}\n"
+        if head:
+            string += "#{:^6s}{:^14s}{:^9s}{:^12s}{:^12s}\n".format("Qnt","Bond", "Freq.", "DS", "RS")
+        line =" {e:^6d}{a[0]:^4d}{f[0]:^3s}{a[1]:^4d}{f[1]:^3s}{b:9.2f}{c:12.4E}{d:12.4E}\n"
         for qnt in range(maxquanta):
             for bnx in self._bnd:
                 bnxt = [x+1 for x in list(bnx)]
+                _atlb = [self._atlab[x] for x in list(bnx)]
                 string += line.format(a=bnxt,
                                       b=self._res[bnx]['frq'][qnt],
                                       c=self._res[bnx]['ds'][qnt],
                                       d=self._res[bnx]['rs'][qnt],
-                                      e=qnt+1)
+                                      e=qnt+1, f=_atlb)
         return string
 
-    def omgchi2string(self):
+    def omgchi2string(self, head=True):
         """
         
         """
         string = ""
-        string += "#{:^8s}{:^9s}{:^9s}\n".format("Bond", "Omega", "Chi")
-        line = " {a[0]:^4d}{a[1]:^4d}{b:9.2f}{c:9.2f}\n"
+        if head:
+            string += "#{:^14s}{:^9s}{:^9s}\n".format("Bond", "Omega", "Chi")
+        line = " {a[0]:^4d}{d[0]:^3s}{a[1]:^4d}{d[1]:^3s}{b:9.2f}{c:9.2f}\n"
         for bnx in self._bnd:
             bnxt = [x+1 for x in list(bnx)]
+            _atlb = [self._atlab[x] for x in list(bnx)]
             string += line.format(a=bnxt,
                                   b=self._res[bnx]['omega'],
-                                  c=self._res[bnx]['chi'])
+                                  c=self._res[bnx]['chi'],
+                                  d=_atlb)
         return string
 
  
