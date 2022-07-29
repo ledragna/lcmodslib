@@ -42,9 +42,8 @@ def setup_lcmodlibs():
         long_description="\n".join(doclines[2:]),
         classifiers=classifiers.split("\n"),
         platforms=["Any."],
-        packages=setuptools.find_packages(include=['lcmodslib', 'lcmodslib.*',
-                                                   'script.lmodesmkinp',
-                                                   'script.processjobs']),
+        packages=setuptools.find_packages(include=['lcmodslib',
+                                                   'lcmodslib.*']),
 
         install_requires = ['numpy',
                     'estampes'],
