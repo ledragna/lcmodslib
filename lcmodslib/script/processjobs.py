@@ -68,7 +68,7 @@ def main():
         if opts.fout is None:
             fout = prefix
         else:
-            fout = self.fout
+            fout = opts.fout
 
         # writes omega and chi
         with open(fout+"_omegachi.dat", "w") as fopen:

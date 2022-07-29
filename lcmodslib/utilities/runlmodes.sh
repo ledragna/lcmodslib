@@ -1,7 +1,7 @@
 #!/bin/bash
 # author m.fuse
 # exe
-
+fchk=${GAUSS_EXEDIR}"/formchk"
 
 ### Functions ###
 Help()
@@ -28,10 +28,17 @@ check_integer (){
         fi
 }
 
+run_gaussian () {
+        local jxyz=$1
+	echo "Run: ${jxyz}"
+        g16 ${jxyz}
+        trimfchk ${jxyz%gjf}chk
+}
+
 trimfchk () {
     local chkname=$1
     local fchkname=${chkname%.chk}.fchk
-    ${GAUSS_EXEDIR}/formchk $chkname 2>&1 > /dev/null
+    formchk $chkname 2>&1 > /dev/null
     awk '
         NR==1{flag1=1} /Atom fragment info /{flag1=0} flag1
         /Energy/
@@ -40,12 +47,6 @@ trimfchk () {
     ' $fchkname > ${fchkname%.fchk}_trim.fchk
     rm $fchkname
     rm $chkname
-}
-
-run_gaussian () {
-        local jxyz=$1
-        $GAUSS_EXEDIR/g16 ${jxyz}
-        trimfchk ${jxyz%gjf}chk
 }
 
 ### MAIN ###
@@ -65,11 +66,11 @@ then
         echo "not enough argument"
         exit 1
 fi
-prefix=$argv[1]
-pjob=$argv[2]
+prefix=$1
+pjob=$2
 #Checks the integers
 isint=$( check_integer $pjob )
-if ![[ $isint -eq 0 ]]
+if ! [[ $isint -eq 0 ]]
 then
     echo $pjob "Not a number."
     Help
