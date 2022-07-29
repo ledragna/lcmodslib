@@ -9,7 +9,7 @@
 """
 
 
-from __future__ import absolute_import, with_statement
+#from __future__ import absolute_import, with_statement
 
 import setuptools
 
@@ -42,16 +42,16 @@ def setup_lcmodlibs():
         long_description="\n".join(doclines[2:]),
         classifiers=classifiers.split("\n"),
         platforms=["Any."],
-        package_dir={'': 'src'},
-        packages=setuptools.find_namespace_packages(where='src'),
-                                                    # exclude=['scripts']),
+        packages=setuptools.find_packages(include=['lcmodslib', 'lcmodslib.*',
+                                                   'script.lmodesmkinp',
+                                                   'script.processjobs']),
+
         install_requires = ['numpy',
-                    'glob',
                     'estampes'],
         entry_points={
             'console_scripts': [
-                'lmmkinp=tcdlib.scripts.calc_vtcd:main',
-                'lmprcdt=tcdlib.scripts.plot_mayavi:main'
+                'lmmkinp=lcmodslib.script.lmodesmkinp:main',
+                'lmprcdt=lcmodslib.script.processjobs:main'
             ]
         }
 
