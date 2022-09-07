@@ -120,7 +120,5 @@ def main():
         gio.write_gjf(hxobj.atlab, tmpgeoms, qmopts, out_file=bprefix, where=path)
 
 
-
-
 if __name__ == '__main__':
     main()

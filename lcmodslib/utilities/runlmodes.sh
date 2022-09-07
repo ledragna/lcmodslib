@@ -15,7 +15,7 @@ Help()
    echo "prefix          The prefix of Gaussian input files"
    echo "njob            The number of jobs to run in parallel"
    echo "options:"
-   echo "h     Print this Help."
+   echo "-h     Print this Help."
    echo
 }
 

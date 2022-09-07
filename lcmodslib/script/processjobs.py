@@ -32,10 +32,8 @@ def build_parser():
                         help="Max number of quanta")
     parser.add_argument('--nterms', type=int, default=3, choices=[1,2,3],
                         help="Max number of terms to be considered in the expansion")
-    parser.add_argument('-w', '--where', type=str,
-                        help="whare write the input files")
-    parser.add_argument('--prefix', type=str,
-                        help="prefix to add to the input files")
+#    parser.add_argument('-w', '--where', type=str,
+#                        help="whare write the input files")
     parser.add_argument('--fout', type=str, help="Output file name")
     return parser
 
