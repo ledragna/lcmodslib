@@ -1,16 +1,4 @@
 #!/usr/bin/env python3
-"""
-Example of Json
-{"qmdata": {"functional": "B3PW91",
-                    "basis": "gen 6D 10F empiricaldispersion=gd3bj",
-                    "molchr": 0,
-                    "molspn": 1,
-                    "addroot": "freq=vcd ",
-                    "addline": "@/home/m.fuse/basis/SNSD.gbs"},
-                    "mem": 20,
-                    "cpu": 12
-                    }
-"""
 import os
 import sys
 import argparse
@@ -24,6 +12,35 @@ from lcmodslib.base import gio
 from lcmodslib.base import gmanip
 
 ## Generic functions
+#custom action argparse
+def _write_json():
+    """Writes a file with a template JSON file with the Gaussian Options
+
+    """
+    example = """{"qmdata": {"functional": "B3PW91",
+            "basis": "gen 6D 10F empiricaldispersion=gd3bj",
+            "molchr": 0,
+            "molspn": 1,
+            "addroot": "freq=vcd ",
+            "addline": "@SNSD.gbs"},
+            "mem": 10,
+            "cpu": 6
+}"""
+
+    with open('gaussian_options_example.json', 'w') as fopen:
+        fopen.write(example)
+
+
+class WriteTemplate(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=0, choices=None, const=None, **kwargs):
+        super(WriteTemplate, self).__init__(option_strings=option_strings, nargs=nargs, dest=dest,**kwargs)
+
+    def __call__(self, parser, values, namespace, option_string):
+        print("   ### Printing JSON option file ###  ")
+        _write_json()      
+        parser.exit()
+
+
 def read_optfile(fname):
     """
     Read the option file. expected in json style
@@ -58,6 +75,8 @@ def build_parser():
     parser.add_argument('--prefix', type=str,
                         help="prefix to add to the input files")
     parser.add_argument('--silent', action='store_true', help="Suppress almost all the printing")
+    parser.add_argument('--template', action=WriteTemplate,
+                        help="Prints an example of the JSON with Gaussian options")
     return parser
 
 
