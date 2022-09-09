@@ -127,15 +127,26 @@ def get_fchk(fname):
     #res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(len(res['atnum']),3,3)
     return res
 
-def get_bondsdatatoobg(prefix, suffix, hxobj, nterms):
+def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
     res = LocalModes(hxobj.atnum, hxobj.refcrd, nterms)
-    bonds = hxobj.hxbonds
+    sys_bonds = hxobj.hxbonds
+    if not selbnds:
+        bonds = sys_bonds
+    else:
+        bonds = []
+        for sbnd in selbnds:
+            if sbnd in sys_bonds:
+                bonds.append(sbnd)
+            else:
+                print(f"{sbnd[0]+1}-{sbnd[1]+1} is not a bond of the selected types. Skipped" )
+        if not bonds:
+            raise BaseException("No bonds")
+
     fname = prefix +"_bond_H{}_{:02d}_{:02d}_step"
     fname2 = prefix +"_bond_H{}_{:02d}_{:02d}_step{:03d}_"+suffix+".fchk"
     for bnd in bonds:
         atype = hxobj.getsecatom(bnd)
         lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*")
-        # print(lfiles)
         tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}
         for i in range(len(lfiles)):               
             tmp_data =  get_fchk(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))

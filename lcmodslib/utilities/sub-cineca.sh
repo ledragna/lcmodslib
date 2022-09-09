@@ -47,7 +47,8 @@ pjob=4
 cd $GAUSS_SCRDIR
 
 name=()
-for i in ${prefix}*.gjf
+#for i in ${prefix}*.gjf
+for i in *.gjf
 do
         name+=($i)
 done
@@ -61,7 +62,7 @@ do
         do
                 jobid=$(( i*pjob+j ))
                 if [ $jobid -lt $njob ]; then
-                        run_gaussian ${name[jobid]} $PBS_O_WORKDIR &
+                        run_gaussian ${name[jobid]} &
                 fi
         done
         wait
