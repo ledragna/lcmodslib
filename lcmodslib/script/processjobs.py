@@ -62,7 +62,7 @@ def main():
         selbnds = [(opts.bonds[i*2]-1, opts.bonds[i*2+1]-1) for i in range(len(opts.bonds)//2)]
     else:
         selbnds = None
-    #for xatm in opts.xatoms:
+    # for xatm in opts.xatoms:
     hxobj = gmanip.XHstreching(moldata['atnum'],
                                moldata['atcrd'], opts.xatoms)
     

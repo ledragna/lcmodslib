@@ -152,8 +152,8 @@ class LocalMolecule():
     
     def bondstretch(self, bond, step):
         # check if the molecule is already oriented
-        if (self._actcrd[bond,:2] > 1e-7).any():
-            self._actcrd = self.orientzaxisbond(bond)
+        # if (self._actcrd[bond,:2] > 1e-7).any():
+        self._actcrd = self.orientzaxisbond(bond)
         mwstep = step * (self._atmass[bond[0]]*self._atmass[bond[1]]/
                          (self._atmass[bond[0]]+self._atmass[bond[1]]))
         # print((1/self._atmass[list(bond)]*mwstep))

@@ -10,6 +10,7 @@ from estampes.data.atom import atomic_data
 
 from lcmodslib.base import gio
 from lcmodslib.base import gmanip
+from lcmodslib.base.utils import readlistnum
 
 ## Generic functions
 #custom action argparse
@@ -22,9 +23,10 @@ def _write_json():
             "molchr": 0,
             "molspn": 1,
             "addroot": "freq=vcd ",
-            "addline": "@SNSD.gbs"},
+            "addline": "@SNSD.gbs",
             "mem": 10,
-            "cpu": 6
+            "cpu": 6},
+  "fragments": []
 }"""
 
     with open('gaussian_options_example.json', 'w') as fopen:
@@ -74,6 +76,7 @@ def build_parser():
                         help="whare write the input files")
     parser.add_argument('--prefix', type=str,
                         help="prefix to add to the input files")
+    parser.add_argument('--frags', action='store_true', help="add fragments number in the input (fragments must be given in the json file)")
     parser.add_argument('--silent', action='store_true', help="Suppress almost all the printing")
     parser.add_argument('--template', action=WriteTemplate,
                         help="Prints an example of the JSON with Gaussian options")
@@ -89,10 +92,33 @@ def main():
         print(f"{opts.fname} Not Found")
         sys.exit()
     try:
-        qmopts = read_optfile(opts.optfile)['qmdata']
+        optsfile = read_optfile(opts.optfile)
+        qmopts = optsfile['qmdata']
     except FileNotFoundError:
         print("JSON file not found")
         sys.exit()
+    natoms = len(moldata['atnum'])
+    if opts.frags:
+        try:
+            tmpfrags = optsfile['fragments']
+            if len(tmpfrags) < 2:
+                print("Error: less than 2 fragments defined")
+                sys.exit()
+            addedindex = []
+            atomfragindex = [0 for _ in range(natoms)]
+            for i, frg in enumerate(tmpfrags):
+                _frg = readlistnum(frg, nmax=natoms-1)
+                if list(set(_frg) & set(addedindex)):
+                    print("Intersections between the fragments, check the definition")
+                    sys.exit()
+                for x in _frg:
+                    atomfragindex[x] = i
+        except KeyError:
+            print("No fragments in JSON")
+            sys.exit()
+    else:
+        atomfragindex=None
+
     if not opts.where:
         path = "."
     else:
@@ -117,7 +143,7 @@ def main():
         bprefix = prefix + f"_bond_H{xtps[i]:s}_{bond[0]+1:02d}_{bond[1]+1:02d}"
         tmpgeoms = hxobj.scanhx(bond, lower=opts.minpos,
                                 step=opts.stepsize, nstep=opts.nstep)
-        gio.write_gjf(hxobj.atlab, tmpgeoms, qmopts, out_file=bprefix, where=path)
+        gio.write_gjf(hxobj.atlab, tmpgeoms, qmopts, out_file=bprefix, where=path,fragments=atomfragindex)
 
 
 if __name__ == '__main__':

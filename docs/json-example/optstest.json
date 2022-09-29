@@ -5,5 +5,6 @@
             "molchr": 0,
             "molspn": 1,
             "addroot": "freq=vcd ",
-            "addline": "@/home/m.fuse/basis/SNSD.gbs"}
+            "addline": "@/home/m.fuse/basis/SNSD.gbs"},
+ "fragments": ["0-13", "14-"]
 }

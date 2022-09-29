@@ -53,12 +53,14 @@ def write_xyz(atnum, comments, *geoms):
             string += line.format(at=atnum[iat], xyz=xyz)
     return string.strip()
 
-def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where=""):
+def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where="", fragments=None):
     """Write a gaussian input file
     Args:
         atlabs ([type]): [description]
         geoms ([type]): [description]
         out_file (str, optional): [description]. Defaults to 'sel_frame'.
+        where (str): where save the files
+        fragments (list(int)): list of fragment indices (default=None)
     """
     template ="""%mem={MEM}GB
 %nprocshared={CPU}
@@ -68,9 +70,9 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where=""):
  
 {COMM}
 
-{MOLCHR} {MOLSPN}
+{MOLCHRSPN}
 """
-    line = '{at:4s}{xyz[0]:12.6f}{xyz[1]:12.6f}{xyz[2]:12.6f}\n'
+    line = '{at:>4s}{add:20s}{xyz[0]:12.6f}{xyz[1]:12.6f}{xyz[2]:12.6f}\n'
     # for each structure
     tmplcomm = '{val}'
     if len(geoms) > 1:
@@ -80,7 +82,17 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where=""):
     for i, geom in enumerate(geoms):
         geomstr = ""
         for iat, xyz in enumerate(geom):
-            geomstr += line.format(at=atlab[iat], xyz=xyz)
+            if fragments:
+                add = f"(Fragment={fragments[iat]+1})"
+                if (len(qmdata['molchr']) != len(qmdata['molspn'])) or (len(qmdata['molchr']) != len(list(set(fragments)))+1):
+                    raise TypeError("Error in fragments definition")
+                chgspn = ""
+                for atindx in range(len(qmdata['molchr'])):
+                    chgspn += f"{qmdata['molchr'][atindx]} {qmdata['molspn'][atindx]} "
+            else:
+                add = ""
+                chgspn = f"{qmdata['molchr']} {qmdata['molspn']}"
+            geomstr += line.format(at=atlab[iat], add=add, xyz=xyz)
         fout = out_file+'_step{:03d}.gjf'.format(i)
         actout = os.path.join(where,fout)
         with open(actout, 'w') as fopen:
@@ -89,8 +101,7 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where=""):
                                         CHK=fout[:-3]+'chk',
                                         FUN=qmdata['functional'],
                                         BASIS=qmdata['basis'],
-                                        MOLCHR=qmdata['molchr'],
-                                        MOLSPN=qmdata['molspn'],
+                                        MOLCHRSPN=chgspn,
                                         ADDROOT=qmdata['addroot'],
                                         COMM=tmplcomm.format(gid=i+1, val="test")))
             fopen.write(geomstr)
