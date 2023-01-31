@@ -167,11 +167,25 @@ class LmodDeriv():
         #expcoef = np.array([[1,1,1/2],
                             [1,1,1/2]])
         # print(np.array(apt[0]))
+        # Define the mask of valid entries
+        _apt_mask = []
+        _tmp_apt = []
+        _aat_mask = []
+        _tmp_aat = []
+        for k, val in enumerate(self.apt[0]):
+            if not val is None:
+                _apt_mask.append(k)
+                _tmp_apt.append(val, self.apt[1][k])
+        for k, val in enumerate(self.aat[0]):
+            if not val is None:
+                _aat_mask.append(k)
+                _tmp_aat.append(val, self.aat[0][k])
         for i in range(2):
             for j in range(3):
-                _tmp = np.polynomial.polynomial.polyfit(_rvec, np.array(self.apt[i])[:, j], deg)
+                _tmp = np.polynomial.polynomial.polyfit(_rvec[_apt_mask], np.array(_tmp_apt[i])[:, j], deg)
                 _inter_apt[i,j,:] = _tmp[:3]
-                _tmp = np.polynomial.polynomial.polyfit(_rvec, np.array(self.aat[i])[:, j], deg)
+                #_tmp = np.polynomial.polynomial.polyfit(_rvec[_aat_mask], np.array(self.aat[i])[:, j], deg)
+                _tmp = np.polynomial.polynomial.polyfit(_rvec[_aat_mask], np.array(_tmp_aat[i])[:, j], deg)
                 _inter_aat[i,j,:] = _tmp[:3]
     
         tz = np.array([self._ams[1]/(self._ams[0]+self._ams[1]), -self._ams[0]/(self._ams[0]+self._ams[1])])

@@ -122,18 +122,26 @@ def get_fchk(fname):
     dfile = DataFile(fname)
     res = {}
     res['fname'] = fname
-    try:
-        data = dfile.get_data(*dkeys.values())
-        atmnum = len(data[dkeys['atnum']]['data'])
-        res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(atmnum,3,3)
-        res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(atmnum,3,3)
-    except:
-        data = dfile.get_data(*dkeys2.values())
-        
+    data = dfile.get_data(*dkeys2.values())
+    atmnum = len(data[dkeys['atnum']]['data'])
     res['atnum'] = data[dkeys['atnum']]['data']
     res['atlab'] = convert_labsymb(True, *data[dkeys['atnum']]['data'])
     res['atcrd'] = np.array(data[dkeys['atcrd']]['data'])*PHYSFACT.bohr2ang
     res['eng'] = data[dkeys['eng']]['data']
+
+    try:
+        data = dfile.get_data(dkeys['apt'])
+        res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(atmnum,3,3)
+    except:
+        res['apt'] = None
+        #res['aat'] = None
+    try:
+        data = dfile.get_data(dkeys['aat'])
+        #res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(atmnum,3,3)
+        res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(atmnum,3,3)
+    except:
+        res['aat'] = None
+
     #res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(len(res['atnum']),3,3)
     #res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(len(res['atnum']),3,3)
     return res
@@ -164,10 +172,18 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
             #print(tmp_data)
             tmpres['eng'].append(tmp_data['eng'])
             tmpres['len'].append(np.abs(tmp_data['atcrd'][bnd[0], 2]-tmp_data['atcrd'][bnd[1], 2]))
-            tmpres['apt1'].append(tmp_data['apt'][bnd[0], 2, :])
-            tmpres['aat1'].append(tmp_data['aat'][bnd[0], 2, :])
-            tmpres['apt2'].append(tmp_data['apt'][bnd[1], 2, :])
-            tmpres['aat2'].append(tmp_data['aat'][bnd[1], 2, :])
+            if not tmp_data['apt'] is None:
+                tmpres['apt1'].append(tmp_data['apt'][bnd[0], 2, :])
+                tmpres['apt2'].append(tmp_data['apt'][bnd[1], 2, :])
+            else:
+                tmpres['apt1'].append(None)
+                tmpres['apt2'].append(None)
+            if not tmp_data['aat'] is None:
+                tmpres['aat1'].append(tmp_data['aat'][bnd[0], 2, :])
+                tmpres['aat2'].append(tmp_data['aat'][bnd[1], 2, :])
+            else:
+                tmpres['aat1'].append(None)
+                tmpres['aat2'].append(None)
 
         tmp_bond = LmodDeriv()
         tmp_bond.bond = bnd
