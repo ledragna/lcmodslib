@@ -82,7 +82,7 @@ class LmodDeriv():
             _rvec = self.blen - self._rdis
         else:
             minpos = self.beln[np.array(self.eng).argmin()]  
-            _rvec = selb.blen - minpos
+            _rvec = self.blen - minpos
         poli = np.polynomial.polynomial.polyfit(_rvec, self.eng, deg)
         k2 = poli[2]*2
         k3 = poli[3]*6
@@ -160,8 +160,9 @@ class LmodDeriv():
         if not self._rdis is None:
             _rvec = self.blen - self._rdis
         else:
+            # Possible BUG check me
             minpos = self.beln[np.array(self.eng).argmin()]  
-            _rvec = selb.blen - minpos
+            _rvec = self.blen - minpos
         ## Expansion coefficents to be check!!!!
         expcoef = np.array([[1,1/2,1/6],
         #expcoef = np.array([[1,1,1/2],
@@ -169,17 +170,19 @@ class LmodDeriv():
         # print(np.array(apt[0]))
         # Define the mask of valid entries
         _apt_mask = []
-        _tmp_apt = []
+        _tmp_apt = [[], []]
         _aat_mask = []
-        _tmp_aat = []
+        _tmp_aat = [[], []]
         for k, val in enumerate(self.apt[0]):
             if not val is None:
                 _apt_mask.append(k)
-                _tmp_apt.append(val, self.apt[1][k])
+                _tmp_apt[0].append(val)
+                _tmp_apt[1].append(self.apt[1][k])
         for k, val in enumerate(self.aat[0]):
             if not val is None:
                 _aat_mask.append(k)
-                _tmp_aat.append(val, self.aat[0][k])
+                _tmp_aat[0].append(val)
+                _tmp_aat[1].append(self.aat[0][k])
         for i in range(2):
             for j in range(3):
                 _tmp = np.polynomial.polynomial.polyfit(_rvec[_apt_mask], np.array(_tmp_apt[i])[:, j], deg)
@@ -220,7 +223,7 @@ class LocalModes():
             self._atlab = convert_labsymb(True, *self._atnum)
         else:
             self._atlab = []
-            for x in atnums:
+            for x in atnum:
                 if len(x) == 1:
                     el = x.upper()
                 elif len(x) == 2:

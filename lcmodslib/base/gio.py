@@ -27,6 +27,19 @@ def get_mol_data(fname):
 
 
 def write_xyz(atnum, comments, *geoms):
+    """Writes molecular geometries into an traj xyz file
+
+    Args:
+        atnum (list(int)): Atomic numbers
+        comments (list(str)): List of comments to be added to the geometries
+        geoms (np.array): the Cartesian coordinates to be written
+
+    Raises:
+        IndexError: _description_
+
+    Returns:
+        str: the string to be written in a file
+    """
     line = '{at:4s}{xyz[0]:12.6f}{xyz[1]:12.6f}{xyz[2]:12.6f}\n'
     ngeom = len(geoms)
     natoms = len(atnum)
@@ -119,6 +132,7 @@ def get_fchk(fname):
              'atcrd': build_qlabel('atcrd', 'last'),
              'atnum': build_qlabel('atnum'),
             }
+    # print(fname)
     dfile = DataFile(fname)
     res = {}
     res['fname'] = fname
@@ -165,7 +179,7 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
     fname2 = prefix +"_bond_H{}_{:02d}_{:02d}_step{:03d}_"+suffix+".fchk"
     for bnd in bonds:
         atype = hxobj.getsecatom(bnd)
-        lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*")
+        lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*.fchk")
         tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}
         for i in range(len(lfiles)):               
             tmp_data =  get_fchk(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))
