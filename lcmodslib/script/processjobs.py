@@ -9,7 +9,7 @@ from estampes.data.atom import atomic_data
 
 from lcmodslib.base import gio
 from lcmodslib.base import gmanip
-from lcmodslib.base import lmodes
+# from lcmodslib.base import lmodes
 
 ## Generic functions
 def build_parser():
@@ -28,10 +28,12 @@ def build_parser():
                         help="prefix of the file names")
     parser.add_argument('xatoms', nargs='+', type=str,
                         help='X Atom types of XH bond')
-    parser.add_argument('--quanta', type=int, default=3, choices=[1,2,3],
+    parser.add_argument('--quanta', type=int, default=3, choices=[1,2,3,4,5,6],
                         help="Max number of quanta")
     parser.add_argument('--nterms', type=int, default=3, choices=[1,2,3],
                         help="Max number of terms to be considered in the expansion")
+    parser.add_argument('--harm', action="store_true",
+                        help="Print only the Dipoles Harmonic solution")    
     parser.add_argument('--bonds', type=int, nargs='+', default=None,
                         help='extract data only for these selected bonds, a bond is specified with the two atomic indices. (e.g. --bonds 3 4 5 6 for two bonds)')
 #    parser.add_argument('-w', '--where', type=str,
@@ -83,8 +85,11 @@ def main():
     # writes omega and chi
     with open(fout+"_omegachi.dat", "w") as fopen:
         fopen.write(lmodesmol.omgchi2string())
+    hdip = False
+    if opts.harm:
+        hdip= True
     with open(fout+"_trns.dat", "w") as fopen:
-        fopen.write(lmodesmol.lmodes2string(opts.quanta))
+        fopen.write(lmodesmol.lmodes2string(opts.quanta, harmdip=hdip))
 
 if __name__ == '__main__':
     main()

@@ -181,7 +181,8 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         atype = hxobj.getsecatom(bnd)
         lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*.fchk")
         tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}
-        for i in range(len(lfiles)):               
+        for i in range(len(lfiles)): 
+            # print(i)              
             tmp_data =  get_fchk(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))
             #print(tmp_data)
             tmpres['eng'].append(tmp_data['eng'])

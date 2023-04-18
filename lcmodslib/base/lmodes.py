@@ -9,7 +9,9 @@ class LmodDeriv():
         self._blen = None
         self._bond = None
         self._apt = None
+        self._aptmask = None
         self._aat = None
+        self._aatmask = None
         self._ams = None
         self._rmas = None
         self._rdis = None
@@ -52,11 +54,15 @@ class LmodDeriv():
         
     @apt.setter
     def apt(self, val):
-        self._apt = val
+        _tmp_mask, _tmp_apt = self._checktensor(val)
+        self._apt = _tmp_apt
+        self._aptmask = _tmp_mask
 
     @aat.setter
     def aat(self, val):
-        self._aat = val
+        _tmp_mask, _tmp_aat = self._checktensor(val)
+        self._aat = _tmp_aat
+        self._aatmask = _tmp_mask
     
     @bond.setter
     def bond(self, val):
@@ -70,7 +76,18 @@ class LmodDeriv():
     @rdis.setter
     def rdis(self, val):
         self._rdis = val
-    
+
+    @staticmethod
+    def _checktensor(val):
+        _mask = []
+        _tmp = [[], []]
+        for k, nvl in enumerate(val[0]):
+            if not nvl is None:
+                _mask.append(k)
+                _tmp[0].append(nvl)
+                _tmp[1].append(val[1][k])
+        return (_mask, [np.array(_tmp[0]), np.array(_tmp[1])]) 
+
     def lmanharm(self, deg=8):
         slight = 2.99792458e10 # cm/s
         avo = 6.02214076e23 # mol -1
@@ -98,7 +115,7 @@ class LmodDeriv():
     
     @staticmethod
     def compute_integrals(omega, chi, rdmass, quanta):
-        integrals = {1:{}, 2:{}, 3:{}}
+        integrals = {1:{}, 2:{}, 3:{}, 4:{}, 5:{}, 6:{}}
         # 1
         integrals[1]['q'] = lambda d, k: d/(2*np.pi)*(1+k/2)
         integrals[1]['q2'] = lambda d, k: (5/4)*d**2/np.pi**2*np.sqrt(k)*(1+52/30*k)
@@ -118,12 +135,36 @@ class LmodDeriv():
         # 3
         integrals[3]['q'] = lambda d, k: np.sqrt(2/3)*d/(2*np.pi)*k*(1+3*k)
         integrals[3]['q2'] = lambda d, k: -np.sqrt(3/2)*d**2/(2*np.pi**2)*np.sqrt(k)
-        integrals[3]['q3'] = lambda d, k: np.sqrt(3/2)*d**3/(4*np.pi**3)*(1+31/2*k)
+        integrals[3]['q3'] = lambda d, k: np.sqrt(3/2)*d**3/(4*np.pi**3)*(1-19/2*k)
         integrals[3]['p'] = lambda d, k: -hbar*np.sqrt(3/2)*2*np.pi/d*k*(1-k)
         integrals[3]['qp'] = lambda d, k: hbar*np.sqrt(3/2)*3/2*np.sqrt(k)*(1-4*k)
         # only harmonic
         integrals[3]['q2p'] = lambda d, k: hbar*np.sqrt(3/2)*d/2
-        
+        # 4
+        integrals[4]['q'] = lambda d, k: -np.sqrt(3)*d/(2*np.sqrt(2)*np.pi)*k**(3/2)*(1+k)
+        integrals[4]['q2'] = lambda d, k: 11*d**2/(4*np.sqrt(6)*np.pi**2)*k*(1+2*k)
+        integrals[4]['q3'] = lambda d, k: -3*np.sqrt(3)*d**3/(4*np.sqrt(2)*np.pi**3)*(1-155/4*k)
+        integrals[4]['p'] = lambda d, k: hbar*2*np.sqrt(6)*np.pi/d*k**(3/2)
+        integrals[4]['qp'] = lambda d, k: -hbar*11/np.sqrt(6)*k*(1-3*k)
+        # only harmonic
+        integrals[4]['q2p'] = lambda d, k: 0
+        # 5
+        integrals[5]['q'] = lambda d, k: np.sqrt(6)*d/(np.sqrt(5)*np.pi)*k**2*(1+15/2*k)
+        integrals[5]['q2'] = lambda d, k: -5*np.sqrt(5)*d**2/(2*np.sqrt(6)*np.pi**2)*k**(3/2)*(1+219/50*k)
+        integrals[5]['q3'] = lambda d, k: 7*np.sqrt(15)*d**3/(8*np.sqrt(2)*np.pi**3)*(1-101/70*k)
+        integrals[5]['p'] = lambda d, k: -hbar*2*np.sqrt(30)*np.pi/d*k**2
+        integrals[5]['qp'] = lambda d, k: hbar*25*np.sqrt(5)/(2*np.sqrt(6))*k**(3/2)*(1-81/50*k)
+        # only harmonic
+        integrals[5]['q2p'] = lambda d, k: 0
+        # 6
+        integrals[6]['q'] = lambda d, k: -np.sqrt(5)*d/np.pi*k**(5/2)
+        integrals[6]['q2'] = lambda d, k: -137*d**2/(12*np.sqrt(5)*np.pi**2)*k**2
+        integrals[6]['q3'] = lambda d, k: -45*np.sqrt(10)*d**3/(4*np.sqrt(2)*np.pi**3)*k**(3/2)*(1+147/90*k)
+        integrals[6]['p'] = lambda d, k: hbar*12*np.sqrt(5)*np.pi/d*k**(5/2)
+        integrals[6]['qp'] = lambda d, k: -hbar*137*np.sqrt(5)/10*k**2
+        # only harmonic
+        integrals[6]['q2p'] = lambda d, k: 0
+
         hbar = 1.054571817e-27 # erg*s
         planck = 6.62607015e-27 # erg*s
         slight = 2.99792458e10 # cm/s
@@ -138,7 +179,7 @@ class LmodDeriv():
         return [[integrals[quanta]['q'](_d, _k), integrals[quanta]['q2'](_d, _k), integrals[quanta]['q3'](_d, _k)],
                 [-integrals[quanta]['p'](_d, _k), -integrals[quanta]['qp'](_d, _k), -integrals[quanta]['q2p'](_d, _k)]]    
 
-    def conpute_intensities(self, quanta, omega=None, chi=None, deg=8, terms=3):
+    def compute_intensities(self, quanta, omega=None, chi=None, deg=8, terms=3):
         """
         First step interpolation for each atom and each component
         si tiene 0 1 2
@@ -148,8 +189,7 @@ class LmodDeriv():
         """
         e2esu = 4.80320427e-10    
         # AAT
-        # 
-        bohr2cm = 5.2917721090e-9
+        # bohr2cm = 5.2917721090e-9
         bohrmagneton = 9.274010078e-21 # egr/G
         hbar = 1.054571817e-27
         aat_c = 2*bohrmagneton/e2esu**2*hbar
@@ -163,35 +203,20 @@ class LmodDeriv():
             # Possible BUG check me
             minpos = self.beln[np.array(self.eng).argmin()]  
             _rvec = self.blen - minpos
-        ## Expansion coefficents to be check!!!!
+        ## Expansion coefficients to be check!!!!
         expcoef = np.array([[1,1/2,1/6],
         #expcoef = np.array([[1,1,1/2],
                             [1,1,1/2]])
         # print(np.array(apt[0]))
-        # Define the mask of valid entries
-        _apt_mask = []
-        _tmp_apt = [[], []]
-        _aat_mask = []
-        _tmp_aat = [[], []]
-        for k, val in enumerate(self.apt[0]):
-            if not val is None:
-                _apt_mask.append(k)
-                _tmp_apt[0].append(val)
-                _tmp_apt[1].append(self.apt[1][k])
-        for k, val in enumerate(self.aat[0]):
-            if not val is None:
-                _aat_mask.append(k)
-                _tmp_aat[0].append(val)
-                _tmp_aat[1].append(self.aat[0][k])
         for i in range(2):
             for j in range(3):
-                _tmp = np.polynomial.polynomial.polyfit(_rvec[_apt_mask], np.array(_tmp_apt[i])[:, j], deg)
+                _tmp = np.polynomial.polynomial.polyfit(_rvec[self._aptmask], self.apt[i][:, j], deg)
                 _inter_apt[i,j,:] = _tmp[:3]
-                #_tmp = np.polynomial.polynomial.polyfit(_rvec[_aat_mask], np.array(self.aat[i])[:, j], deg)
-                _tmp = np.polynomial.polynomial.polyfit(_rvec[_aat_mask], np.array(_tmp_aat[i])[:, j], deg)
+                _tmp = np.polynomial.polynomial.polyfit(_rvec[self._aatmask], self.aat[i][:, j], deg)
                 _inter_aat[i,j,:] = _tmp[:3]
     
         tz = np.array([self._ams[1]/(self._ams[0]+self._ams[1]), -self._ams[0]/(self._ams[0]+self._ams[1])])
+        # tz / mr 
         omass = np.array([1/self._ams[0], -1/self._ams[1]])*1/da2gra
         if omega == None or chi == None:
             tmp = self.lmanharm(deg=deg)
@@ -203,10 +228,8 @@ class LmodDeriv():
             intgs[:, terms: ] = 0
         # APTS
         _inter_apt *= tz[:, np.newaxis, np.newaxis]
-        _inter_apt = _inter_apt.sum(axis=0)
-        
+        _inter_apt = _inter_apt.sum(axis=0)        
         _inter_apt *= intgs[0,:][np.newaxis, :]
-        # print(_inter_apt)
         _mu = _inter_apt.sum(axis=1)
         # AAT
         _inter_aat *= omass[:, np.newaxis, np.newaxis]
@@ -275,13 +298,20 @@ class LocalModes():
         omega, chi = bond.lmanharm()
         self._res[bndindx]['omega'] = omega[0]
         self._res[bndindx]['chi'] = chi[0]
-        self._res[bndindx]['frq'] = [omega[0]-2*chi[0], 2*omega[0]-6*chi[0], 3*omega[0]-12*chi[0]]
+        # self._res[bndindx]['frq'] = [omega[0]-2*chi[0], 2*omega[0]-6*chi[0], 3*omega[0]-12*chi[0]]
+        self._res[bndindx]['frq'] = [i*omega[0]-(i**2+i)*chi[0] for i in range(1,7)]
         self._res[bndindx]['ds'] = []
         self._res[bndindx]['rs'] = []
-        for i in range(3):
-            tmpdip = bond.conpute_intensities(i+1, omega=omega[0], chi=chi[0], terms=self._ntr)
+        self._res[bndindx]['hds'] = []
+        self._res[bndindx]['hrs'] = []
+        for i in range(6):
+            tmpdip = bond.compute_intensities(i+1, omega=omega[0], chi=chi[0], terms=self._ntr)
+            # Harmonic integrals only
+            tmphdip = bond.compute_intensities(i+1, omega=omega[0], chi=0, terms=self._ntr)
             self._res[bndindx]['ds'].append(np.dot(tmpdip[0], tmpdip[0]))
             self._res[bndindx]['rs'].append(np.dot(tmpdip[0], tmpdip[1]))
+            self._res[bndindx]['hds'].append(np.dot(tmphdip[0], tmphdip[0]))
+            self._res[bndindx]['hrs'].append(np.dot(tmphdip[0], tmphdip[1]))
             
     def printlmodes(self, quanta):
         """
@@ -297,9 +327,12 @@ class LocalModes():
                               d=self._res[bnx]['rs'][quanta-1]))
 
 
-    def lmodes2string(self, maxquanta, head=True):
+    def lmodes2string(self, maxquanta, head=True, harmdip=False):
         """
         """
+        keys = ['ds', 'rs']
+        if harmdip:
+            keys = ['h'+x for x in keys]
         string = ""
         if head:
             string += "#{:^6s}{:^14s}{:^9s}{:^12s}{:^12s}\n".format("Qnt","Bond", "Freq.", "DS", "RS")
@@ -310,8 +343,8 @@ class LocalModes():
                 _atlb = [self._atlab[x] for x in list(bnx)]
                 string += line.format(a=bnxt,
                                       b=self._res[bnx]['frq'][qnt],
-                                      c=self._res[bnx]['ds'][qnt],
-                                      d=self._res[bnx]['rs'][qnt],
+                                      c=self._res[bnx][keys[0]][qnt],
+                                      d=self._res[bnx][keys[1]][qnt],
                                       e=qnt+1, f=_atlb)
         return string
 
@@ -341,3 +374,25 @@ class LocalModes():
             eng.append(self._res[bnx]['frq'][quanta-1])
             spc.append(self._res[bnx][spctyp][quanta-1])
         return [eng, spc]
+
+class LocalConfs():
+    """
+    Class to handle multiple conformers
+    """
+
+    def __init__(self, natms, bonds) -> None:
+        self._natms = natms
+        self._bnds = bonds
+        self._nconf = 0
+        self._engs = []
+
+    def addconf(self, conf):
+        if conf._natom != self._natms:
+            print("Different molecules")
+        elif self._bnds != conf._bnd:
+            print("Differnt bonds")
+        else:
+            pass
+
+
+    
