@@ -151,7 +151,7 @@ class LmodDeriv():
         # 5
         integrals[5]['q'] = lambda d, k: np.sqrt(6)*d/(np.sqrt(5)*np.pi)*k**2*(1+15/2*k)
         integrals[5]['q2'] = lambda d, k: -5*np.sqrt(5)*d**2/(2*np.sqrt(6)*np.pi**2)*k**(3/2)*(1+219/50*k)
-        integrals[5]['q3'] = lambda d, k: 7*np.sqrt(15)*d**3/(8*np.sqrt(2)*np.pi**3)*(1-101/70*k)
+        integrals[5]['q3'] = lambda d, k: 7*np.sqrt(15)*d**3/(8*np.sqrt(2)*np.pi**3)*k*(1-101/70*k)
         integrals[5]['p'] = lambda d, k: -hbar*2*np.sqrt(30)*np.pi/d*k**2
         integrals[5]['qp'] = lambda d, k: hbar*25*np.sqrt(5)/(2*np.sqrt(6))*k**(3/2)*(1-81/50*k)
         # only harmonic
