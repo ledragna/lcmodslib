@@ -116,48 +116,61 @@ class LmodDeriv():
     @staticmethod
     def compute_integrals(omega, chi, rdmass, quanta):
         integrals = {1:{}, 2:{}, 3:{}, 4:{}, 5:{}, 6:{}}
+        # Adding q4 and q3p harmonic for test
         # 1
         integrals[1]['q'] = lambda d, k: d/(2*np.pi)*(1+k/2)
         integrals[1]['q2'] = lambda d, k: (5/4)*d**2/np.pi**2*np.sqrt(k)*(1+52/30*k)
         integrals[1]['q3'] = lambda d, k: (3/8)*d**3/np.pi**3*(1+37/4*k)
+        integrals[1]['q4'] = lambda d, k: 0
         integrals[1]['p'] = lambda d, k: -hbar*np.pi/d*(1-3/2*k)
         integrals[1]['qp'] = lambda d, k: -hbar*5/4*np.sqrt(k)*(1-4/15*k)
         integrals[1]['q2p'] = lambda d, k: hbar*d/(4*np.pi)*(1-25/4*k)
+        integrals[1]['q3p'] = lambda d, k: 0
         # 2
         integrals[2]['q'] = lambda d, k: -d/(2*np.sqrt(2)*np.pi)*np.sqrt(k)*(1+3/2*k)
         integrals[2]['q2'] = lambda d, k: d**2/(2*np.sqrt(2)*np.pi**2)*(1-2*k)
         integrals[2]['q3'] = lambda d, k: 9/4*d**3/(np.sqrt(2)*np.pi**2)*np.sqrt(k)*(1+65/72*k)
+        integrals[2]['q4'] = lambda d, k: (3*d**4)/(2**(5/2)*np.pi**4) 
         integrals[2]['p'] = lambda d, k: hbar*np.sqrt(2)*np.pi/d*np.sqrt(k)*(1-3/2*k)
         integrals[2]['qp'] = lambda d, k: -hbar*np.sqrt(2)/2*(1-5*k)
         integrals[2]['q2p'] = lambda d, k: -hbar*7*d/(2*np.sqrt(2)*np.pi)*np.sqrt(k)*(1-19/12*k)
+        integrals[2]['q3p'] = lambda d, k: 0
         # 3
         integrals[3]['q'] = lambda d, k: np.sqrt(2/3)*d/(2*np.pi)*k*(1+3*k)
         integrals[3]['q2'] = lambda d, k: -np.sqrt(3/2)*d**2/(2*np.pi**2)*np.sqrt(k)
         integrals[3]['q3'] = lambda d, k: np.sqrt(3/2)*d**3/(4*np.pi**3)*(1-19/2*k)
+        integrals[3]['q4'] = lambda d, k: 0
         integrals[3]['p'] = lambda d, k: -hbar*np.sqrt(3/2)*2*np.pi/d*k*(1-k)
         integrals[3]['qp'] = lambda d, k: hbar*np.sqrt(3/2)*3/2*np.sqrt(k)*(1-4*k)
         integrals[3]['q2p'] = lambda d, k: -hbar*np.sqrt(3/2)*d/(2*np.pi)*(1-85/6*k)
+        integrals[3]['q3p'] = lambda d, k: 0
         # 4
         integrals[4]['q'] = lambda d, k: -np.sqrt(3/2)*d/(2*np.pi)*k**(3/2)*(1+5*k)
         integrals[4]['q2'] = lambda d, k: 11*d**2/(4*np.sqrt(6)*np.pi**2)*k*(1+2*k)
         integrals[4]['q3'] = lambda d, k: -3*np.sqrt(3/2)*d**3/(4*np.pi**3)*np.sqrt(k)*(1-55/12*k)
+        integrals[4]['q4'] = lambda d, k: (np.sqrt(6)*d**4)/(8*np.pi**4)
         integrals[4]['p'] = lambda d, k: hbar*2*np.sqrt(6)*np.pi/d*k**(3/2)
         integrals[4]['qp'] = lambda d, k: -hbar*11/np.sqrt(6)*k*(1-3*k)
         integrals[4]['q2p'] = lambda d, k: hbar * np.sqrt(6)*d/np.pi *np.sqrt(k) *(1-59/6*k)
+        integrals[4]['q3p'] = lambda d, k: 0
         # 5
         integrals[5]['q'] = lambda d, k: np.sqrt(6/5)*d/np.pi*k**2*(1+15/2*k)
         integrals[5]['q2'] = lambda d, k: -5*np.sqrt(5/6)*d**2/(2*np.pi**2)*k**(3/2)*(1+219/50*k)
         integrals[5]['q3'] = lambda d, k: 7*np.sqrt(15/2)*d**3/(8*np.pi**3)*k*(1-101/70*k)
+        integrals[5]['q4'] = lambda d, k: 0
         integrals[5]['p'] = lambda d, k: -hbar*2*np.sqrt(30)*np.pi/d*k**2
         integrals[5]['qp'] = lambda d, k: hbar*25/2*np.sqrt(5/6)*k**(3/2)*(1-81/50*k)
-        integrals[5]['q2p'] = lambda d, k: hbar*35/4*np.sqrt(5/6)*d/np.pi*k*(1-379/50*k)
+        integrals[5]['q2p'] = lambda d, k: -hbar*35/4*np.sqrt(5/6)*d/np.pi*k*(1-379/50*k)
+        integrals[5]['q3p'] = lambda d, k: 0
         # 6
         integrals[6]['q'] = lambda d, k: -np.sqrt(5)*d/np.pi*k**(5/2)
         integrals[6]['q2'] = lambda d, k: 137*d**2/(12*np.sqrt(5)*np.pi**2)*k**2
         integrals[6]['q3'] = lambda d, k: -45*np.sqrt(5)*d**3/(4*np.pi**3)*k**(3/2)*(1+147/90*k)
+        integrals[6]['q4'] = lambda d, k: 0
         integrals[6]['p'] = lambda d, k: hbar*12*np.sqrt(5)*np.pi/d*k**(5/2)
         integrals[6]['qp'] = lambda d, k: -hbar*137*np.sqrt(5)/10*k**2
         integrals[6]['q2p'] = lambda d, k: hbar*45*np.sqrt(5)*d/(np.pi*4)*k**(3/2)
+        integrals[6]['q3p'] = lambda d, k: 0
 
         hbar = 1.054571817e-27 # erg*s
         planck = 6.62607015e-27 # erg*s
