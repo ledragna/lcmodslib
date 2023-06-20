@@ -22,7 +22,7 @@ class LocalMolecule():
             self._atlab = convert_labsymb(True, *self._atnum)
         else:
             self._atlab = []
-            for x in atnums:
+            for x in atnum:
                 if len(x) == 1:
                     el = x.upper()
                 elif len(x) == 2:
@@ -109,7 +109,7 @@ class LocalMolecule():
     
     def _indexinthesystem(self, indx):
         if indx < 0 or indx >= self._natom:
-            raise ValueError("index out of range")
+            raise ValueError("index out of range")              
     
     def orientzaxisbond(self, bond, atm3=None):
         """

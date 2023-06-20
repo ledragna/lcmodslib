@@ -178,8 +178,10 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
     fname = prefix +"_bond_H{}_{:02d}_{:02d}_step"
     fname2 = prefix +"_bond_H{}_{:02d}_{:02d}_step{:03d}_"+suffix+".fchk"
     for bnd in bonds:
+        # print(bnd)
         atype = hxobj.getsecatom(bnd)
         lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*.fchk")
+        # print(lfiles)
         tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}
         for i in range(len(lfiles)): 
             # print(i)              
