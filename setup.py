@@ -18,7 +18,7 @@ classifiers = """Development Status :: 1 - Planning
 Environment :: Console
 Intended Audience :: Science/Research
 Intended Audience :: Developers
-License :: OSI Approved :: BSD License
+License :: OSI Approved :: MIT License
 Natural Language :: English
 Operating System :: OS Independent
 Programming Language :: Python
@@ -37,16 +37,17 @@ def setup_lcmodlibs():
         author_email="marco.fuse@unibs.it",
         maintainer="ledragna",
         maintainer_email="marco.fuse@unibs.it",
-        license="BSD 3-Clause License",
+        license="MIT",
         description=doclines[0],
         long_description="\n".join(doclines[2:]),
         classifiers=classifiers.split("\n"),
         platforms=["Any."],
-        packages=setuptools.find_packages(include=['lcmodslib',
-                                                   'lcmodslib.*']),
+        # packages=setuptools.find_packages(include=['lcmodslib',
+        #                                           'lcmodslib.*']),
 
         install_requires = ['numpy',
-                    'estampes'],
+                            'scipy',
+                            'estampes'],
         entry_points={
             'console_scripts': [
                 'lmmkinp=lcmodslib.script.lmodesmkinp:main',

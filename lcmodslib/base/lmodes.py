@@ -4,6 +4,8 @@ from estampes.tools.atom import convert_labsymb
 from lcmodslib.base.utils import connectivitymatrix, angle
 
 class LmodDeriv():
+    """A class to store the data from QM calculations of a defined modes
+    """
     
     def __init__(self):
         self._eng = None
@@ -89,7 +91,7 @@ class LmodDeriv():
                 _tmp[1].append(val[1][k])
         return (_mask, [np.array(_tmp[0]), np.array(_tmp[1])]) 
 
-    def lmanharm(self, deg=8):
+    def lmanharm(self, deg: int=8):
         slight = 2.99792458e10 # cm/s
         avo = 6.02214076e23 # mol -1
         plank = 6.62607015e-27 # erg*s
@@ -99,7 +101,7 @@ class LmodDeriv():
         if not self._rdis is None:
             _rvec = self.blen - self._rdis
         else:
-            minpos = self.beln[np.array(self.eng).argmin()]  
+            minpos = self.blen[np.array(self.eng).argmin()]  
             _rvec = self.blen - minpos
         poli = np.polynomial.polynomial.polyfit(_rvec, self.eng, deg)
         k2 = poli[2]*2
@@ -115,7 +117,18 @@ class LmodDeriv():
         return (wau, xau)
     
     @staticmethod
-    def compute_integrals(omega, chi, rdmass, quanta):
+    def compute_integrals(omega: float, chi: float, rdmass: float, quanta: int) -> list[list[float]]:
+        """Computes the transition <0|z|n>,<0|z^2|n>,<0|z^3|n> and <0|p|0>,<0|zp|n>,<0|z^2p|n> transition integrals see:
+
+        Args:
+            omega (float): w_0 from morse potential fitting (cm-1)
+            chi (float): X from morse potential fitting (cm-1)
+            rdmass (float): bi-atomic systems reduced mass (amu)
+            quanta (int): quanta of interest (1 to 6)
+
+        Returns:
+            list[list[float]]: [[q,q^2,q^3],[p, qp, q^2p]]
+        """
         integrals = {1:{}, 2:{}, 3:{}, 4:{}, 5:{}, 6:{}}
         # Adding q4 and q3p harmonic for test
         # 1
@@ -267,6 +280,8 @@ class LmodDeriv():
 
     
 class LocalModes():
+    """Class to handle the local modes of a molecular system
+    """
     def __init__(self, atnum, refcrd, terms=3):
         if isinstance(atnum[0], int):
             self._atnum = atnum
