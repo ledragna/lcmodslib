@@ -333,9 +333,11 @@ class LocalModes():
         self._res[bndindx]['ds'] = []
         self._res[bndindx]['rs'] = []
         self._res[bndindx]['aa'] = []
+        self._res[bndindx]['m2'] = []
         self._res[bndindx]['hds'] = []
         self._res[bndindx]['hrs'] = []
         self._res[bndindx]['haa'] = []
+        self._res[bndindx]['hm2'] = []
         # BUG 
         try:
             for i in range(6):
@@ -345,9 +347,11 @@ class LocalModes():
                 self._res[bndindx]['ds'].append(np.dot(tmpdip[0], tmpdip[0]))
                 self._res[bndindx]['rs'].append(np.dot(tmpdip[0], tmpdip[1]))
                 self._res[bndindx]['aa'].append(angle(tmpdip[0], tmpdip[1]))
+                self._res[bndindx]['m2'].append(np.dot(tmpdip[1], tmpdip[1]))
                 self._res[bndindx]['hds'].append(np.dot(tmphdip[0], tmphdip[0]))
                 self._res[bndindx]['hrs'].append(np.dot(tmphdip[0], tmphdip[1]))
                 self._res[bndindx]['haa'].append(angle(tmphdip[0], tmphdip[1]))
+                self._res[bndindx]['hm2'].append(np.dot(tmphdip[1], tmphdip[1]))
         except IndexError:
             pass
             
@@ -369,13 +373,13 @@ class LocalModes():
     def lmodes2string(self, maxquanta, head=True, harmdip=False):
         """
         """
-        keys = ['ds', 'rs', 'aa']
+        keys = ['ds', 'rs', 'aa', 'm2']
         if harmdip:
             keys = ['h'+x for x in keys]
         string = ""
         if head:
-            string += "#{:^6s}{:^14s}{:^9s}{:^12s}{:^12s}{:^9s}\n".format("Qnt","Bond", "Freq.", "DS", "RS", "angle")
-        line =" {e:^6d}{a[0]:^4d}{f[0]:^3s}{a[1]:^4d}{f[1]:^3s}{b:9.2f}{c:12.4E}{d:12.4E}{g:9.2f}\n"
+            string += "#{:^6s}{:^14s}{:^9s}{:^12s}{:^12s}{:^9s}{:^12s}\n".format("Qnt","Bond", "Freq.", "DS", "RS", "angle", "m dot m")
+        line =" {e:^6d}{a[0]:^4d}{f[0]:^3s}{a[1]:^4d}{f[1]:^3s}{b:9.2f}{c:12.4E}{d:12.4E}{g:9.2f}{h:12.4E}\n"
         for qnt in range(maxquanta):
             for bnx in self._bnd:
                 bnxt = [x+1 for x in list(bnx)]
@@ -385,7 +389,8 @@ class LocalModes():
                                       c=self._res[bnx][keys[0]][qnt],
                                       d=self._res[bnx][keys[1]][qnt],
                                       e=qnt+1, f=_atlb,
-                                      g=self._res[bnx][keys[2]][qnt])
+                                      g=self._res[bnx][keys[2]][qnt],
+                                      h=self._res[bnx][keys[3]][qnt])
         return string
 
     def omgchi2string(self, head=True):
