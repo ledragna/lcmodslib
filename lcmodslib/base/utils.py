@@ -48,7 +48,7 @@ def connectivitymatrix(atnum, refcrd, thrs=0.4):
     _thrs = thrs
     # use the covalent radii to evaluate the connectivity
     atdat = atomic_data(*set(_atlab))
-    _atmass = np.array([atdat[at]['mass'] for at in _atlab])
+    # _atmass = np.array([atdat[at]['mass'] for at in _atlab])
     _ard = np.array([atdat[at]['rcov'][0]/100 for at in _atlab])
     _ardmat = _ard[:, np.newaxis] + _ard[np.newaxis,:]
     dmat = distance_matrix(_refcrd, _refcrd)

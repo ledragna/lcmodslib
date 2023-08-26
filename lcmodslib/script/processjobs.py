@@ -1,11 +1,6 @@
 import os
 import sys
 import argparse
-import copy
-import json
-import warnings
-
-from estampes.data.atom import atomic_data
 
 from lcmodslib.base import gio
 from lcmodslib.base import gmanip
