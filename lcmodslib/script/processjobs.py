@@ -20,7 +20,7 @@ def build_parser():
     parser.add_argument('folder', type=str,
                         help="folder where search fchk files")
     parser.add_argument('prefix', type=str,
-                        help="prefix of the file names")
+                        help="prefix of the file names. Example of filename: prefix_bond_HO_13_12_step001_trim.fchk")
     parser.add_argument('xatoms', nargs='+', type=str,
                         help='X Atom types of XH bond')
     parser.add_argument('--quanta', type=int, default=3, choices=[1,2,3,4,5,6],

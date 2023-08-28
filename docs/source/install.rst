@@ -1,11 +1,11 @@
 Install
 =======
 
-From the root folder run:
+From the root folder activate or create a Python virtual environments and run:
 
 .. code-block:: bash
 
-    pip install -e . --user
+    pip install -e . 
 
 The library will be installed in local and two entry point will be placed in `$USER/.local/bin`: (check the PATH)
     * lmmkinp -- to generate Gaussian input files

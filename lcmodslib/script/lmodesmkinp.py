@@ -2,11 +2,7 @@
 import os
 import sys
 import argparse
-import copy
 import json
-import warnings
-
-from estampes.data.atom import atomic_data
 
 from lcmodslib.base import gio
 from lcmodslib.base import gmanip
@@ -19,7 +15,7 @@ def _write_json():
 
     """
     example = """{"qmdata": {"functional": "B3PW91",
-            "basis": "gen 6D 10F empiricaldispersion=gd3bj",
+            "basis": "gen 6D empiricaldispersion=gd3bj",
             "molchr": 0,
             "molspn": 1,
             "addroot": "freq=vcd ",

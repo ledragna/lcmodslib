@@ -34,16 +34,13 @@ run_gaussian () {
 
 
 
-##export GAUSS_SCRDIR=$CINECA_SCRATCH/g16_$PBS_JOBID  # def. tmp folder in $CINECA_SCRATCH
 export GAUSS_SCRDIR=$CINECA_SCRATCH/g16/test1  # def. tmp folder in $CINECA_SCRATCH
 mkdir  -p $GAUSS_SCRDIR                      # the dir must exist
 
 #put you input data in file test1.com, for example taking from g16 directory>
-######cp $g16root/g16/tests/com/test0000.com test1.com      # copy your input data here
 cp *.gjf $GAUSS_SCRDIR
 
 pjob=4
-#####cp $FILE_I.chk $GAUSS_SCRDIR
 cd $GAUSS_SCRDIR
 
 name=()

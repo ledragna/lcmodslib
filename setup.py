@@ -14,7 +14,7 @@
 import setuptools
 
 
-classifiers = """Development Status :: 1 - Planning
+classifiers = """Development Status :: 3 - Alpha
 Environment :: Console
 Intended Audience :: Science/Research
 Intended Audience :: Developers

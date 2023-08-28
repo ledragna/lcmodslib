@@ -151,13 +151,11 @@ def get_fchk(fname):
         #res['aat'] = None
     try:
         data = dfile.get_data(dkeys['aat'])
-        #res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(atmnum,3,3)
         res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(atmnum,3,3)
     except:
         res['aat'] = None
 
-    #res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(len(res['atnum']),3,3)
-    #res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(len(res['atnum']),3,3)
+
     return res
 
 def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
