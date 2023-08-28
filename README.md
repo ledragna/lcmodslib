@@ -1,4 +1,4 @@
-# The locmodslib a small library for Local Mode Approach #
+# The lcmodslib a small library for Local Mode Approach #
 
 Collection of a small library and few scripts to perform a local mode calculation.
 
