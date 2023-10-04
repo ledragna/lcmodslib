@@ -1,4 +1,5 @@
 # The lcmodslib a small library for Local Mode Approach #
+[![DOI](https://zenodo.org/badge/510756340.svg)](https://zenodo.org/badge/latestdoi/510756340)
 
 Collection of a small library and few scripts to perform a local mode calculation.
 
