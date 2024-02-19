@@ -1,26 +1,28 @@
 import os
 import numpy as np
 import glob
-from estampes.parser import DataFile, build_qlabel
+from estampes.parser.base import DataFile
+from estampes.base import QLabel
 from estampes.tools.atom import convert_labsymb
 from estampes.data.physics import PHYSFACT
 from estampes.data.atom import atomic_data
 from lcmodslib.base.lmodes import LocalModes, LmodDeriv
 
+
 def get_mol_data(fname):
-    dkeys = {'Energy': build_qlabel(1),
-             'atcrd': build_qlabel('atcrd', 'last'),
-             'atnum': build_qlabel('atnum'),
-            }
+    dkeys = {'Energy': QLabel(quantity=1),
+             'atcrd': QLabel(quantity='atcrd', descriptor='last'),
+             'atnum': QLabel(quantity='atnum'),
+             }
 
     dfile = DataFile(fname)
     res = {}
     res['fname'] = fname
-    data = dfile.get_data(*dkeys.values())
-    res['atnum'] = data[dkeys['atnum']]['data']
-    res['atlab'] = convert_labsymb(True, *data[dkeys['atnum']]['data'])
-    res['atcrd'] = np.array(data[dkeys['atcrd']]['data'])*PHYSFACT.bohr2ang
-    res['eng'] = data[dkeys['Energy']]['data']
+    data = dfile.get_data(**dkeys)
+    res['atnum'] = data['atnum'].data
+    res['atlab'] = convert_labsymb(True, *data['atnum'].data)
+    res['atcrd'] = np.array(data['atcrd'].data)*PHYSFACT.bohr2ang
+    res['eng'] = data['Energy'].data
     atdat = atomic_data(*set(res['atlab']))
     res['atmass'] = np.array([atdat[at]['mass'] for at in res['atlab']])
     return res
@@ -41,7 +43,7 @@ def write_xyz(atnum, comments, *geoms):
         str: the string to be written in a file
     """
     line = '{at:4s}{xyz[0]:12.6f}{xyz[1]:12.6f}{xyz[2]:12.6f}\n'
-    ngeom = len(geoms)
+    # ngeom = len(geoms)
     natoms = len(atnum)
     string = ""
     if isinstance(comments, (list, tuple, np.ndarray)):
@@ -66,7 +68,9 @@ def write_xyz(atnum, comments, *geoms):
             string += line.format(at=atnum[iat], xyz=xyz)
     return string.strip()
 
-def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where="", fragments=None):
+
+def write_gjf(atlab, geoms, qmdata, out_file='sel_frame',
+              where="", fragments=None):
     """Write a gaussian input file
     Args:
         atlabs ([type]): [description]
@@ -75,12 +79,12 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where="", fragments=No
         where (str): where save the files
         fragments (list(int)): list of fragment indices (default=None)
     """
-    template ="""%mem={MEM}GB
+    template = """%mem={MEM}GB
 %nprocshared={CPU}
 %chk={CHK}
 #p {FUN}/{BASIS}
  nosymm {ADDROOT}
- 
+
 {COMM}
 
 {MOLCHRSPN}
@@ -90,8 +94,7 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where="", fragments=No
     tmplcomm = '{val}'
     if len(geoms) > 1:
         tmplcomm = 'geom:{gid:03d} {val}'
-        
-    
+
     for i, geom in enumerate(geoms):
         geomstr = ""
         for iat, xyz in enumerate(geom):
@@ -107,7 +110,7 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where="", fragments=No
                 chgspn = f"{qmdata['molchr']} {qmdata['molspn']}"
             geomstr += line.format(at=atlab[iat], add=add, xyz=xyz)
         fout = out_file+'_step{:03d}.gjf'.format(i)
-        actout = os.path.join(where,fout)
+        actout = os.path.join(where, fout)
         with open(actout, 'w') as fopen:
             fopen.write(template.format(MEM=qmdata['mem'],
                                         CPU=qmdata['cpu'],
@@ -120,43 +123,40 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame', where="", fragments=No
             fopen.write(geomstr)
             fopen.write('\n')
             fopen.write(f'{qmdata["addline"]}\n\n')
-        
+
+
 def get_fchk(fname):
-    dkeys = {'eng': build_qlabel(1),
-             'atcrd': build_qlabel('atcrd', 'last'),
-             'atnum': build_qlabel('atnum'),
-             'aat': build_qlabel(102,None,1),
-             'apt': build_qlabel(101,None,1)
-            }
-    dkeys2 = {'eng': build_qlabel(1),
-             'atcrd': build_qlabel('atcrd', 'last'),
-             'atnum': build_qlabel('atnum'),
-            }
+    dkeys2 = {'eng': QLabel(quantity=1),
+              'atcrd': QLabel(quantity='atcrd', descriptor='last'),
+              'atnum': QLabel(quantity='atnum'),
+              }
     # print(fname)
     dfile = DataFile(fname)
     res = {}
     res['fname'] = fname
-    data = dfile.get_data(*dkeys2.values())
-    atmnum = len(data[dkeys['atnum']]['data'])
-    res['atnum'] = data[dkeys['atnum']]['data']
-    res['atlab'] = convert_labsymb(True, *data[dkeys['atnum']]['data'])
-    res['atcrd'] = np.array(data[dkeys['atcrd']]['data'])*PHYSFACT.bohr2ang
-    res['eng'] = data[dkeys['eng']]['data']
+    data = dfile.get_data(**dkeys2)
+    atmnum = len(data['atnum'].data)
+    res['atnum'] = data['atnum'].data
+    res['atlab'] = convert_labsymb(True, *data['atnum'].data)
+    res['atcrd'] = np.array(data['atcrd'].data)*PHYSFACT.bohr2ang
+    res['eng'] = data['eng'].data
 
     try:
-        data = dfile.get_data(dkeys['apt'])
-        res['apt'] = np.array(data[dkeys['apt']]['data']).reshape(atmnum,3,3)
+        dkey = {'apt': QLabel(quantity=101, derorder=1)}
+        data = dfile.get_data(**dkey)
+        res['apt'] = np.array(data['apt'].data).reshape(atmnum, 3, 3)
     except:
         res['apt'] = None
-        #res['aat'] = None
+        # res['aat'] = None
     try:
-        data = dfile.get_data(dkeys['aat'])
-        res['aat'] = np.array(data[dkeys['aat']]['data']).reshape(atmnum,3,3)
+        dkey = {'aat': QLabel(quantity=102, derorder=1)}
+        data = dfile.get_data(**dkey)
+        res['aat'] = np.array(data['aat'].data).reshape(atmnum, 3, 3)
     except:
         res['aat'] = None
 
-
     return res
+
 
 def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
     res = LocalModes(hxobj.atnum, hxobj.refcrd, nterms)
@@ -180,11 +180,13 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         atype = hxobj.getsecatom(bnd)
         lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*.fchk")
         # print(lfiles)
-        tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}
-        for i in range(len(lfiles)): 
-            # print(i)              
-            tmp_data =  get_fchk(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))
-            #print(tmp_data)
+        tmpres = {'eng': [], 'len': [],
+                  'apt1': [], 'aat1': [],
+                  'apt2': [], 'aat2': []}
+        for i in range(len(lfiles)):
+            # print(i)
+            tmp_data = get_fchk(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))
+            # print(tmp_data)
             tmpres['eng'].append(tmp_data['eng'])
             tmpres['len'].append(np.abs(tmp_data['atcrd'][bnd[0], 2]-tmp_data['atcrd'][bnd[1], 2]))
             if not tmp_data['apt'] is None:
@@ -208,4 +210,3 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         tmp_bond.aat = [tmpres['aat1'], tmpres['aat2']]
         res.addbond(tmp_bond)
     return res
-
