@@ -161,6 +161,7 @@ def get_fchk(fname):
 def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
     res = LocalModes(hxobj.atnum, hxobj.refcrd, nterms)
     sys_bonds = hxobj.hxbonds
+    print(sys_bonds)
     if not selbnds:
         bonds = sys_bonds
     else:
@@ -168,6 +169,8 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         for sbnd in selbnds:
             if sbnd in sys_bonds:
                 bonds.append(sbnd)
+            elif (sbnd[1], sbnd[0]) in  sys_bonds:
+                bonds.append((sbnd[1], sbnd[0]))
             else:
                 print(f"{sbnd[0]+1}-{sbnd[1]+1} is not a bond of the selected types. Skipped" )
         if not bonds:
@@ -182,7 +185,8 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         # print(lfiles)
         tmpres = {'eng': [], 'len':[], 'apt1': [], 'aat1': [], 'apt2': [], 'aat2': []}
         for i in range(len(lfiles)): 
-            # print(i)              
+            # print(i)             
+            # print(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))
             tmp_data =  get_fchk(fname2.format(atype, bnd[0]+1, bnd[1]+1, i))
             #print(tmp_data)
             tmpres['eng'].append(tmp_data['eng'])

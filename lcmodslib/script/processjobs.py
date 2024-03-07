@@ -70,6 +70,7 @@ def main():
         prefix = "lmodes"
     else:
         prefix = opts.prefix
+    print(selbnds)
     lmodesmol = gio.get_bondsdatatoobg(os.path.join(opts.folder, opts.prefix),
                                        "trim", hxobj, opts.nterms, selbnds)
     if opts.fout is None:
