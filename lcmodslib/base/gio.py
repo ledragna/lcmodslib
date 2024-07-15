@@ -97,17 +97,25 @@ def write_gjf(atlab, geoms, qmdata, out_file='sel_frame',
 
     for i, geom in enumerate(geoms):
         geomstr = ""
+        chgspn = ""
+        if fragments:
+            if (len(qmdata['molchr']) != len(qmdata['molspn'])) or (len(qmdata['molchr']) != len(list(set(fragments)))+1):
+                raise TypeError("Error in fragments definition")
+            for atindx in range(len(qmdata['molchr'])):
+                chgspn += f"{qmdata['molchr'][atindx]} {qmdata['molspn'][atindx]} "
+        else:
+            chgspn = f"{qmdata['molchr']} {qmdata['molspn']}"
         for iat, xyz in enumerate(geom):
             if fragments:
                 add = f"(Fragment={fragments[iat]+1})"
-                if (len(qmdata['molchr']) != len(qmdata['molspn'])) or (len(qmdata['molchr']) != len(list(set(fragments)))+1):
-                    raise TypeError("Error in fragments definition")
-                chgspn = ""
+                # if (len(qmdata['molchr']) != len(qmdata['molspn'])) or (len(qmdata['molchr']) != len(list(set(fragments)))+1):
+                #    raise TypeError("Error in fragments definition")
+                # chgspn = ""
                 for atindx in range(len(qmdata['molchr'])):
                     chgspn += f"{qmdata['molchr'][atindx]} {qmdata['molspn'][atindx]} "
             else:
                 add = ""
-                chgspn = f"{qmdata['molchr']} {qmdata['molspn']}"
+                # chgspn = f"{qmdata['molchr']} {qmdata['molspn']}"
             geomstr += line.format(at=atlab[iat], add=add, xyz=xyz)
         fout = out_file+'_step{:03d}.gjf'.format(i)
         actout = os.path.join(where, fout)
@@ -206,7 +214,7 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         tmp_bond.bond = bnd
         tmp_bond.eng = tmpres['eng']
         tmp_bond.blen = tmpres['len']
-        tmp_bond.apt = [tmpres['apt1'], tmpres['apt2']]
-        tmp_bond.aat = [tmpres['aat1'], tmpres['aat2']]
+        tmp_bond.apt = (tmpres['apt1'], tmpres['apt2'])
+        tmp_bond.aat = (tmpres['aat1'], tmpres['aat2'])
         res.addbond(tmp_bond)
     return res

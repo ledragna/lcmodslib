@@ -1,10 +1,11 @@
 import numpy as np
+import typing as tp
 
 from estampes.tools.atom import convert_labsymb
 from estampes.data.atom import atomic_data
 from scipy.spatial import distance_matrix
 
-def readlistnum(x, nmax=None):
+def readlistnum(x: str, nmax: tp.Optional[tp.Union[None, int]]=None) -> tp.List[int]:
     result = []
     for part in x.split(','):
         if '-' in part:
@@ -26,7 +27,7 @@ def readlistnum(x, nmax=None):
             result.append(a)
     return result
 
-def connectivitymatrix(atnum, refcrd, thrs=0.4):
+def connectivitymatrix(atnum: tp.Union[np.ndarray, list], refcrd: np.ndarray, thrs: float=0.4) -> np.ndarray:
     if isinstance(atnum[0], int):
             _atnum = atnum
             _atlab = convert_labsymb(True, *_atnum)
@@ -41,7 +42,7 @@ def connectivitymatrix(atnum, refcrd, thrs=0.4):
                 print("read element ",x)
                 raise ValueError("I don't know about this one")
             _atlab.append(el)
-        _atnum = convert_labsymb(False, *_atnum)
+        _atnum = convert_labsymb(False, * atnum)
     _natom = len(_atnum)
     # BUG think a mre efficent way
     _refcrd = refcrd
@@ -56,7 +57,7 @@ def connectivitymatrix(atnum, refcrd, thrs=0.4):
     ardsum[np.diag_indices(_natom)] = 0.
     return (ardsum - dmat) > 0
 
-def angle(rvec1,rvec2):
+def angle(rvec1: np.ndarray, rvec2: np.ndarray) -> float:
     cos_alpha = np.dot(rvec1, rvec2)
     sin_alpha = np.linalg.norm(np.cross(rvec1, rvec2))
     alpha = np.arctan2(sin_alpha, cos_alpha)
