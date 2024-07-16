@@ -33,7 +33,7 @@ class WriteTemplate(argparse.Action):
     def __init__(self, option_strings, dest, nargs=0, choices=None, const=None, **kwargs):
         super(WriteTemplate, self).__init__(option_strings=option_strings, nargs=nargs, dest=dest,**kwargs)
 
-    def __call__(self, parser, values, namespace, option_string):
+    def __call__(self, parser, values, namespace, option_string=None):
         print("   ### Printing JSON option file ###  ")
         _write_json()      
         parser.exit()

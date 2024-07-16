@@ -1,4 +1,5 @@
 import numpy as np
+import typing as tp
 from estampes.data.atom import atomic_data
 from estampes.tools.atom import convert_labsymb
 from lcmodslib.base.utils import connectivitymatrix, angle
@@ -48,40 +49,41 @@ class LmodDeriv():
         return self._rdis
             
     @eng.setter
-    def eng(self, val):
+    def eng(self, val: tp.Union[list[float], np.ndarray]):
         self._eng = val
 
     @blen.setter
-    def blen(self, val):
-        self._blen = val
+    def blen(self, val: tp.Union[list[float], np.ndarray]):
+        self._blen = np.array(val)
         
     @apt.setter
-    def apt(self, val):
+    def apt(self, val: tp.Tuple[list[np.ndarray], list[np.ndarray]]):
         _tmp_mask, _tmp_apt = self._checktensor(val)
         self._apt = _tmp_apt
         self._aptmask = _tmp_mask
 
     @aat.setter
-    def aat(self, val):
+    def aat(self, val: tp.Tuple[list[np.ndarray], list[np.ndarray]]):
         _tmp_mask, _tmp_aat = self._checktensor(val)
         self._aat = _tmp_aat
         self._aatmask = _tmp_mask
     
     @bond.setter
-    def bond(self, val):
+    def bond(self, val: tp.Tuple[int, int]):
         self._bond = val
     
     @ams.setter
-    def ams(self, val):
+    def ams(self, val: tp.Tuple[float, float]):
         self._rmas = (val[0]*val[1])/(val[0]+val[1])
         self._ams = val
     
     @rdis.setter
-    def rdis(self, val):
+    def rdis(self, val: float):
         self._rdis = val
 
     @staticmethod
-    def _checktensor(val):
+    def _checktensor(val: tp.Tuple[list[np.ndarray],
+                                   list[np.ndarray]]) -> tp.Tuple[list[int], tp.List[np.ndarray]]:
         _mask = []
         _tmp = [[], []]
         for k, nvl in enumerate(val[0]):
@@ -91,7 +93,9 @@ class LmodDeriv():
                 _tmp[1].append(val[1][k])
         return (_mask, [np.array(_tmp[0]), np.array(_tmp[1])]) 
 
-    def lmanharm(self, deg: int=8):
+    def lmanharm(self, deg: int=8) -> tuple[float, float]:
+        if self._rmas is None or self.blen is None or self.eng is None:
+            raise ValueError("Missing data to compute the harmonic constants")
         slight = 2.99792458e10 # cm/s
         avo = 6.02214076e23 # mol -1
         plank = 6.62607015e-27 # erg*s
@@ -209,6 +213,9 @@ class LmodDeriv():
         d^2 = h/(2*c*mr)* 1/ωl
         
         """
+        if self._rmas is None or self.blen is None or self._ams is None \
+             or self.aat is None or self.apt is None:
+            raise ValueError("Missing data to compute the dipoles")
         e2esu = 4.80320427e-10    
         # AAT
         # bohr2cm = 5.2917721090e-9
@@ -223,7 +230,7 @@ class LmodDeriv():
             _rvec = self.blen - self._rdis
         else:
             # Possible BUG check me
-            minpos = self.beln[np.array(self.eng).argmin()]  
+            minpos = self.blen[np.array(self.eng).argmin()]  
             _rvec = self.blen - minpos
         ## Expansion coefficients to be check!!!!
         expcoef = np.array([[1,1/2,1/6],
@@ -261,8 +268,10 @@ class LmodDeriv():
         return(_inter_apt*e2esu*ang2cm, _inter_aat*aat_c/ang2cm)
         # return (_mu*e2esu*ang2cm, _m*aat_c/ang2cm)
 
-    def compute_intensities(self, quanta, omega=None, chi=None,
-                            deg=8, terms=3, debug=False):
+    def compute_intensities(self, quanta: float,
+                            omega: tp.Optional[tp.Union[None, float]]=None,
+                            chi: tp.Optional[tp.Union[None, float]]=None,
+                            deg: int=8, terms: int=3, debug: bool=False) -> tuple[np.ndarray, np.ndarray]:
         """
         First step interpolation for each atom and each component
         si tiene 0 1 2
@@ -370,7 +379,7 @@ class LocalModes():
         except IndexError:
             pass
             
-    def printlmodes(self, quanta):
+    def printlmodes(self, quanta: int):
         """
         """
         print(16*"#")
@@ -385,7 +394,7 @@ class LocalModes():
                               e=self._res[bnx]['aa'][quanta-1]))
 
 
-    def lmodes2string(self, maxquanta, head=True, harmdip=False):
+    def lmodes2string(self, maxquanta: int, head: bool=True, harmdip: bool=False) -> str:
         """
         """
         keys = ['ds', 'rs', 'aa', 'm2']
@@ -408,7 +417,7 @@ class LocalModes():
                                       h=self._res[bnx][keys[3]][qnt])
         return string
 
-    def omgchi2string(self, head=True):
+    def omgchi2string(self, head: bool=True) -> str:
         """
         
         """
@@ -427,7 +436,7 @@ class LocalModes():
 
  
     
-    def get_lmodes(self, spctyp, quanta):
+    def get_lmodes(self, spctyp: str, quanta: int) -> list[list[float]]:
         eng = []
         spc = []
         for bnx in self._bnd:
@@ -435,7 +444,7 @@ class LocalModes():
             spc.append(self._res[bnx][spctyp][quanta-1])
         return [eng, spc]
     
-    def getlocal2wrld(self, bond, atm3=None):
+    def getlocal2wrld(self, bond: tp.Tuple[int, int], atm3: tp.Optional[tp.Union[None, int]]=None) -> np.ndarray:
         """_summary_
 
         Args:
@@ -481,13 +490,13 @@ class LocalConfs():
     Class to handle multiple conformers
     """
 
-    def __init__(self, natms, bonds) -> None:
+    def __init__(self, natms: int, bonds: int) -> None:
         self._natms = natms
         self._bnds = bonds
         self._nconf = 0
         self._engs = []
 
-    def addconf(self, conf):
+    def addconf(self, conf: LocalModes) -> None:
         if conf._natom != self._natms:
             print("Different molecules")
         elif self._bnds != conf._bnd:
