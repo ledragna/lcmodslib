@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import glob
+import typing as tp
 from estampes.parser.base import DataFile
 from estampes.base import QLabel
 from estampes.tools.atom import convert_labsymb
@@ -177,7 +178,7 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         for sbnd in selbnds:
             if sbnd in sys_bonds:
                 bonds.append(sbnd)
-            elif (sbnd[1], sbnd[0]) in  sys_bonds:
+            elif (sbnd[1], sbnd[0]) in sys_bonds:
                 bonds.append((sbnd[1], sbnd[0]))
             else:
                 print(f"{sbnd[0]+1}-{sbnd[1]+1} is not a bond of the selected types. Skipped" )
@@ -221,3 +222,30 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
         tmp_bond.aat = (tmpres['aat1'], tmpres['aat2'])
         res.addbond(tmp_bond)
     return res
+
+
+def write_dataarray(data: tp.Tuple[np.ndarray,
+                                   tp.Union[np.ndarray, list]]) -> str:
+    """Writes a data array in a string format
+
+    Args:
+        data (tp.Tuple[np.ndarray, np.ndarray]): The data array to be written
+
+    Returns:
+        str: The string to be written
+    """
+    if isinstance(data[1], list):
+        _tmpdata = np.hstack((data[1][0], data[1][1]))
+    else:
+        _tmpdata = data[1]
+    if data[0].shape[0] != _tmpdata.shape[0]:
+        raise ValueError("The two arrays have different sizes")
+    string = ""
+    if _tmpdata.ndim > 1:
+        nval = _tmpdata[0].flatten().shape[0]
+    else:
+        nval = 1
+    tmpl = "{:12.6f} " + "{:15.6E} " * (nval) + "\n"
+    for i in range(data[0].shape[0]):
+        string += tmpl.format(data[0][i], *_tmpdata.flatten())
+    return string

@@ -2,12 +2,13 @@ import numpy as np
 import typing as tp
 from estampes.data.atom import atomic_data
 from estampes.tools.atom import convert_labsymb
-from lcmodslib.base.utils import connectivitymatrix, angle
+from lcmodslib.base.utils import connectivitymatrix, angle, normy
+
 
 class LmodDeriv():
     """A class to store the data from QM calculations of a defined modes
     """
-    
+
     def __init__(self):
         self._eng = None
         self._blen = None
@@ -19,35 +20,35 @@ class LmodDeriv():
         self._ams = None
         self._rmas = None
         self._rdis = None
-        
+
     @property
     def eng(self):
         return self._eng
-    
+
     @property
     def blen(self):
         return self._blen
-    
+
     @property
     def apt(self):
         return self._apt
-    
+
     @property
     def aat(self):
         return self._aat
-    
+
     @property
     def bond(self):
         return self._bond
-    
+
     @property
     def ams(self):
         return self._ams
-    
+
     @property
     def rdis(self):
         return self._rdis
-            
+
     @eng.setter
     def eng(self, val: tp.Union[list[float], np.ndarray]):
         self._eng = val
@@ -55,7 +56,7 @@ class LmodDeriv():
     @blen.setter
     def blen(self, val: tp.Union[list[float], np.ndarray]):
         self._blen = np.array(val)
-        
+
     @apt.setter
     def apt(self, val: tp.Tuple[list[np.ndarray], list[np.ndarray]]):
         _tmp_mask, _tmp_apt = self._checktensor(val)
@@ -67,42 +68,45 @@ class LmodDeriv():
         _tmp_mask, _tmp_aat = self._checktensor(val)
         self._aat = _tmp_aat
         self._aatmask = _tmp_mask
-    
+
     @bond.setter
     def bond(self, val: tp.Tuple[int, int]):
         self._bond = val
-    
+
     @ams.setter
     def ams(self, val: tp.Tuple[float, float]):
         self._rmas = (val[0]*val[1])/(val[0]+val[1])
         self._ams = val
-    
+
     @rdis.setter
     def rdis(self, val: float):
         self._rdis = val
 
     @staticmethod
     def _checktensor(val: tp.Tuple[list[np.ndarray],
-                                   list[np.ndarray]]) -> tp.Tuple[list[int], tp.List[np.ndarray]]:
+                                   list[np.ndarray]]) -> tp.Tuple[list[int],
+                                                                  tp.List[np.ndarray]]:
+        """Check the tensor and return the mask and the tensor without None values
+           APT and AAT could be evaluated only on some points of the grid"""
         _mask = []
         _tmp = [[], []]
         for k, nvl in enumerate(val[0]):
-            if not nvl is None:
+            if nvl is not None:
                 _mask.append(k)
                 _tmp[0].append(nvl)
                 _tmp[1].append(val[1][k])
-        return (_mask, [np.array(_tmp[0]), np.array(_tmp[1])]) 
+        return (_mask, [np.array(_tmp[0]), np.array(_tmp[1])])
 
-    def lmanharm(self, deg: int=8) -> tuple[float, float]:
+    def lmanharm(self, deg: int = 8) -> tuple[float, float]:
         if self._rmas is None or self.blen is None or self.eng is None:
             raise ValueError("Missing data to compute the harmonic constants")
-        slight = 2.99792458e10 # cm/s
-        avo = 6.02214076e23 # mol -1
-        plank = 6.62607015e-27 # erg*s
+        slight = 2.99792458e10  # cm/s
+        avo = 6.02214076e23  # mol -1
+        plank = 6.62607015e-27  # erg*s
         conv = 1e16
         hartree2erg = 4.3597447222071e-11
         # checks if equilibrium is in the scan
-        if not self._rdis is None:
+        if self._rdis is not None:
             _rvec = self.blen - self._rdis
         else:
             minpos = self.blen[np.array(self.eng).argmin()]  
@@ -111,18 +115,21 @@ class LmodDeriv():
         k2 = poli[2]*2
         k3 = poli[3]*6
         k4 = poli[4]*24
-        #print(poli)
-        #print(k2,k3,k4)
+        # print(poli)
+        # print(k2,k3,k4)
         # X = h/(64pi^2*mr*c)*(5/3Kiii^2/Kii^2-Kiiii/Kii)
         # X = hbar/(32pi*mr*c)*(5/3Kiii^2/Kii^2-Kiiii/Kii)
         # w = 1/(2pi*c)*sqrt(Kii/mr)
         wau = 1/(2*np.pi*slight)*np.sqrt(k2*hartree2erg*conv/(self._rmas/avo))
         xau = plank*conv/(64*np.pi**2*self._rmas/avo*slight)*(5/3*k3**2/k2**2-k4/k2)
         return (wau, xau)
-    
+
     @staticmethod
     def compute_integrals(omega: float, chi: float, rdmass: float, quanta: int) -> list[list[float]]:
-        """Computes the transition <0|z|n>,<0|z^2|n>,<0|z^3|n> and <0|p|0>,<0|zp|n>,<0|z^2p|n> transition integrals see:
+        """Computes the transition
+           <0|z|n>,<0|z^2|n>,<0|z^3|n> and
+           <0|p|0>,<0|zp|n>,<0|z^2p|n>
+           transition integrals see:
 
         Args:
             omega (float): w_0 from morse potential fitting (cm-1)
@@ -133,7 +140,7 @@ class LmodDeriv():
         Returns:
             list[list[float]]: [[q,q^2,q^3],[p, qp, q^2p]]
         """
-        integrals = {1:{}, 2:{}, 3:{}, 4:{}, 5:{}, 6:{}}
+        integrals = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
         # Adding q4 and q3p harmonic for test
         # 1
         integrals[1]['q'] = lambda d, k: d/(2*np.pi)*(1+k/2)
@@ -190,88 +197,93 @@ class LmodDeriv():
         integrals[6]['q2p'] = lambda d, k: hbar*45*np.sqrt(5)*d/(np.pi*4)*k**(3/2)
         # integrals[6]['q3p'] = lambda d, k: 0
 
-        hbar = 1.054571817e-27 # erg*s
-        planck = 6.62607015e-27 # erg*s
-        slight = 2.99792458e10 # cm/s
+        hbar = 1.054571817e-27  # erg*s
+        planck = 6.62607015e-27  # erg*s
+        slight = 2.99792458e10  # cm/s
         # avo = 6.02214076e23 # mol -1
-        da2gra = 1.66053906660e-24 # g
+        da2gra = 1.66053906660e-24  # g
         cm2ang = 1e8
         dq = planck/(2*slight*rdmass*da2gra)/omega
         _k = chi/omega
         # d in angstrom
         _d = np.sqrt(dq)*cm2ang
-    
-        return [[integrals[quanta]['q'](_d, _k), integrals[quanta]['q2'](_d, _k), integrals[quanta]['q3'](_d, _k)],
-                [-integrals[quanta]['p'](_d, _k), -integrals[quanta]['qp'](_d, _k), -integrals[quanta]['q2p'](_d, _k)]]    
+
+        return [[integrals[quanta]['q'](_d, _k),
+                 integrals[quanta]['q2'](_d, _k),
+                 integrals[quanta]['q3'](_d, _k)],
+                [-integrals[quanta]['p'](_d, _k),
+                 -integrals[quanta]['qp'](_d, _k),
+                 -integrals[quanta]['q2p'](_d, _k)]]
 
     def _compute_dipoles(self, quanta, omega=None, chi=None,
                          deg=8, terms=3):
         """
         First step interpolation for each atom and each component
         si tiene 0 1 2
-        
+
         d^2 = h/(2*c*mr)* 1/ωl
-        
+
         """
         if self._rmas is None or self.blen is None or self._ams is None \
-             or self.aat is None or self.apt is None:
+            or self.aat is None or self.apt is None:
             raise ValueError("Missing data to compute the dipoles")
-        e2esu = 4.80320427e-10    
+        e2esu = 4.80320427e-10
         # AAT
         # bohr2cm = 5.2917721090e-9
-        bohrmagneton = 9.274010078e-21 # egr/G
+        bohrmagneton = 9.274010078e-21  # egr/G
         hbar = 1.054571817e-27
         aat_c = 2*bohrmagneton/e2esu**2*hbar
         ang2cm = 1e-8
         da2gra = 1.66053906660e-24
         _inter_apt = np.zeros((2, 3, 3))
         _inter_aat = np.zeros((2, 3, 3))
-        if not self._rdis is None:
+        if self._rdis is not None:
             _rvec = self.blen - self._rdis
         else:
             # Possible BUG check me
             minpos = self.blen[np.array(self.eng).argmin()]  
             _rvec = self.blen - minpos
-        ## Expansion coefficients to be check!!!!
-        expcoef = np.array([[1,1/2,1/6],
-        #expcoef = np.array([[1,1,1/2],
-                            [1,1,1/2]])
+        # Expansion coefficients to be check!!!!
+        expcoef = np.array([[1, 1/2, 1/6],
+                            [1, 1, 1/2]])
+        # expcoef = np.array([[1,1,1/2],
         # print(np.array(apt[0]))
         for i in range(2):
             for j in range(3):
                 _tmp = np.polynomial.polynomial.polyfit(_rvec[self._aptmask], self.apt[i][:, j], deg)
-                _inter_apt[i,j,:] = _tmp[:3]
+                _inter_apt[i, j, :] = _tmp[:3]
                 _tmp = np.polynomial.polynomial.polyfit(_rvec[self._aatmask], self.aat[i][:, j], deg)
-                _inter_aat[i,j,:] = _tmp[:3]
-    
+                _inter_aat[i, j, :] = _tmp[:3]
+
         tz = np.array([self._ams[1]/(self._ams[0]+self._ams[1]), -self._ams[0]/(self._ams[0]+self._ams[1])])
-        # tz / mr 
+        # tz / mr
         omass = np.array([1/self._ams[0], -1/self._ams[1]])*1/da2gra
-        if omega == None or chi == None:
+        if omega is None or chi is None:
             tmp = self.lmanharm(deg=deg)
             omega = tmp[0]
             chi = tmp[1]
         intgs = np.array(self.compute_integrals(omega, chi, self._rmas, quanta))
         intgs *= expcoef
         if terms - 1 < 2:
-            intgs[:, terms: ] = 0
+            intgs[:, terms:] = 0
         # APTS
         _inter_apt *= tz[:, np.newaxis, np.newaxis]
         _inter_apt = _inter_apt.sum(axis=0)        
-        _inter_apt *= intgs[0,:][np.newaxis, :]
-        #_mu = _inter_apt.sum(axis=1)
+        _inter_apt *= intgs[0, :][np.newaxis, :]
+        # _mu = _inter_apt.sum(axis=1)
         # AAT
         _inter_aat *= omass[:, np.newaxis, np.newaxis]
         _inter_aat = _inter_aat.sum(axis=0)
-        _inter_aat *= intgs[1,:][np.newaxis, :]
-        #_m = _inter_aat.sum(axis=1)
-        return(_inter_apt*e2esu*ang2cm, _inter_aat*aat_c/ang2cm)
+        _inter_aat *= intgs[1, :][np.newaxis, :]
+        # _m = _inter_aat.sum(axis=1)
+        return (_inter_apt*e2esu*ang2cm, _inter_aat*aat_c/ang2cm)
         # return (_mu*e2esu*ang2cm, _m*aat_c/ang2cm)
 
     def compute_intensities(self, quanta: float,
-                            omega: tp.Optional[tp.Union[None, float]]=None,
-                            chi: tp.Optional[tp.Union[None, float]]=None,
-                            deg: int=8, terms: int=3, debug: bool=False) -> tuple[np.ndarray, np.ndarray]:
+                            omega: tp.Optional[tp.Union[None, float]] = None,
+                            chi: tp.Optional[tp.Union[None, float]] = None,
+                            deg: int = 8, terms: int = 3,
+                            debug: bool = False) -> tuple[np.ndarray, np.ndarray]:
         """
         First step interpolation for each atom and each component
         si tiene 0 1 2
@@ -287,7 +299,24 @@ class LmodDeriv():
         _m = _inter_aat.sum(axis=1)
         return (_mu, _m)
 
-    
+    def getpointvalues(self):
+        """
+        returns the bond lenght, energy, apt and aat
+        """
+        if self._rdis is not None:
+            _rvec = self.blen - self._rdis
+        else:
+            # Possible BUG check me
+            minpos = self.blen[np.array(self.eng).argmin()]  
+            _rvec = self.blen - minpos
+        values = {}
+        values['eng'] = (_rvec, np.array(self.eng))
+        values['apt'] = (_rvec[self._aptmask], self.apt)
+        values['aat'] = (_rvec[self._aatmask], self.aat)
+        return values
+
+
+
 class LocalModes():
     """Class to handle the local modes of a molecular system
     """
@@ -303,7 +332,7 @@ class LocalModes():
                 elif len(x) == 2:
                     el = x[0].upper() + x[1]
                 else:
-                    print("read element ",x)
+                    print("read element ", x)
                     raise ValueError("I don't know about this one")
                 self._atlab.append(el)
             self._atnum = convert_labsymb(False, *self._atnum)
@@ -321,15 +350,19 @@ class LocalModes():
         self._bnd = []
         self._drv = {}
         self._res = {}
-    
+
+    @property
+    def bonds(self):
+        return self._bnd
+
     def _indexinthesystem(self, indx):
         if indx < 0 or indx >= self._natom:
             raise ValueError("index out of range")
-            
+
     def _refdistance(self, bond):
         rvec = self._refcrd[bond[0]] - self._refcrd[bond[1]]
         return np.sqrt(np.dot(rvec, rvec))
-            
+
     def addbond(self, bond, deg=8):
         bndindx = bond.bond
         atmass = []
@@ -340,20 +373,20 @@ class LocalModes():
         if bond.ams is None:
             bond.ams = atmass
         if bond.rdis is None:
-            minpos = bond.blen[np.array(bond.eng).argmin()] 
+            minpos = bond.blen[np.array(bond.eng).argmin()]
             if np.abs(minpos - refdist) < 1e-6:
                 bond.rdis = minpos
-            else: 
+            else:
                 bond.rdis = refdist
         self._bnd.append(bndindx)
         self._drv[bndindx] = bond
         self._res[bndindx] = {}
         omega, chi = bond.lmanharm()
         # print(omega, chi)
-        self._res[bndindx]['omega'] = omega # [0]
-        self._res[bndindx]['chi'] = chi # [0]
+        self._res[bndindx]['omega'] = omega  # [0]
+        self._res[bndindx]['chi'] = chi  # [0]
         # self._res[bndindx]['frq'] = [omega[0]-2*chi[0], 2*omega[0]-6*chi[0], 3*omega[0]-12*chi[0]]
-        self._res[bndindx]['frq'] = [i*omega-(i**2+i)*chi for i in range(1,7)]
+        self._res[bndindx]['frq'] = [i*omega-(i**2+i)*chi for i in range(1, 7)]
         self._res[bndindx]['ds'] = []
         self._res[bndindx]['rs'] = []
         self._res[bndindx]['aa'] = []
@@ -362,39 +395,50 @@ class LocalModes():
         self._res[bndindx]['hrs'] = []
         self._res[bndindx]['haa'] = []
         self._res[bndindx]['hm2'] = []
-        # BUG 
+        #  BUG 
         try:
             for i in range(6):
-                tmpdip = bond.compute_intensities(i+1, omega=omega, chi=chi, terms=self._ntr)
+                tmpdip = bond.compute_intensities(i+1, omega=omega,
+                                                  chi=chi, terms=self._ntr)
                 # Harmonic integrals only
-                tmphdip = bond.compute_intensities(i+1, omega=omega, chi=0, terms=self._ntr)
-                self._res[bndindx]['ds'].append(np.dot(tmpdip[0], tmpdip[0]))
-                self._res[bndindx]['rs'].append(np.dot(tmpdip[0], tmpdip[1]))
-                self._res[bndindx]['aa'].append(angle(tmpdip[0], tmpdip[1]))
-                self._res[bndindx]['m2'].append(np.dot(tmpdip[1], tmpdip[1]))
-                self._res[bndindx]['hds'].append(np.dot(tmphdip[0], tmphdip[0]))
-                self._res[bndindx]['hrs'].append(np.dot(tmphdip[0], tmphdip[1]))
-                self._res[bndindx]['haa'].append(angle(tmphdip[0], tmphdip[1]))
-                self._res[bndindx]['hm2'].append(np.dot(tmphdip[1], tmphdip[1]))
+                tmphdip = bond.compute_intensities(i+1, omega=omega,
+                                                   chi=0, terms=self._ntr)
+                self._res[bndindx]['ds'].append(np.dot(tmpdip[0],
+                                                       tmpdip[0]))
+                self._res[bndindx]['rs'].append(np.dot(tmpdip[0],
+                                                       tmpdip[1]))
+                self._res[bndindx]['aa'].append(angle(tmpdip[0],
+                                                      tmpdip[1]))
+                self._res[bndindx]['m2'].append(np.dot(tmpdip[1],
+                                                       tmpdip[1]))
+                self._res[bndindx]['hds'].append(np.dot(tmphdip[0],
+                                                        tmphdip[0]))
+                self._res[bndindx]['hrs'].append(np.dot(tmphdip[0],
+                                                        tmphdip[1]))
+                self._res[bndindx]['haa'].append(angle(tmphdip[0],
+                                                       tmphdip[1]))
+                self._res[bndindx]['hm2'].append(np.dot(tmphdip[1],
+                                                        tmphdip[1]))
         except IndexError:
             pass
-            
+
     def printlmodes(self, quanta: int):
         """
         """
         print(16*"#")
         print("{:^16s}".format(f"nu = {quanta}"))
         print(16*"#")
-        print("{:^8s}{:^9s}{:^12s}{:^12s}{:^9s}".format("Bond", "Freq.", "DS", "RS", "angle"))
-        line ="{a[0]:^4d}{a[1]:^4d}{b:9.2f}{c:12.4E}{d:12.4E}{e:9.2f}"
+        print("{:^8s}{:^9s}{:^12s}{:^12s}{:^9s}".format("Bond", "Freq.",
+                                                        "DS", "RS", "angle"))
+        line = "{a[0]:^4d}{a[1]:^4d}{b:9.2f}{c:12.4E}{d:12.4E}{e:9.2f}"
         for bnx in self._bnd:
             print(line.format(a=bnx, b=self._res[bnx]['frq'][quanta-1],
                               c=self._res[bnx]['ds'][quanta-1],
                               d=self._res[bnx]['rs'][quanta-1],
                               e=self._res[bnx]['aa'][quanta-1]))
 
-
-    def lmodes2string(self, maxquanta: int, head: bool=True, harmdip: bool=False) -> str:
+    def lmodes2string(self, maxquanta: int, head: bool = True,
+                      harmdip: bool = False) -> str:
         """
         """
         keys = ['ds', 'rs', 'aa', 'm2']
@@ -403,7 +447,7 @@ class LocalModes():
         string = ""
         if head:
             string += "#{:^6s}{:^14s}{:^9s}{:^12s}{:^12s}{:^9s}{:^12s}\n".format("Qnt","Bond", "Freq.", "DS", "RS", "angle", "m dot m")
-        line =" {e:^6d}{a[0]:^4d}{f[0]:^3s}{a[1]:^4d}{f[1]:^3s}{b:9.2f}{c:12.4E}{d:12.4E}{g:9.2f}{h:12.4E}\n"
+        line = " {e:^6d}{a[0]:^4d}{f[0]:^3s}{a[1]:^4d}{f[1]:^3s}{b:9.2f}{c:12.4E}{d:12.4E}{g:9.2f}{h:12.4E}\n"
         for qnt in range(maxquanta):
             for bnx in self._bnd:
                 bnxt = [x+1 for x in list(bnx)]
@@ -417,9 +461,9 @@ class LocalModes():
                                       h=self._res[bnx][keys[3]][qnt])
         return string
 
-    def omgchi2string(self, head: bool=True) -> str:
+    def omgchi2string(self, head: bool = True) -> str:
         """
-        
+
         """
         string = ""
         if head:
@@ -434,8 +478,6 @@ class LocalModes():
                                   d=_atlb)
         return string
 
- 
-    
     def get_lmodes(self, spctyp: str, quanta: int) -> list[list[float]]:
         eng = []
         spc = []
@@ -443,15 +485,15 @@ class LocalModes():
             eng.append(self._res[bnx]['frq'][quanta-1])
             spc.append(self._res[bnx][spctyp][quanta-1])
         return [eng, spc]
-    
-    def getlocal2wrld(self, bond: tp.Tuple[int, int], atm3: tp.Optional[tp.Union[None, int]]=None) -> np.ndarray:
+
+    def getlocal2wrld(self, bond: tp.Tuple[int, int],
+                      atm3: tp.Optional[tp.Union[None, int]] = None) -> np.ndarray:
         """_summary_
 
         Args:
             bond (_type_): _description_
             atm3 (_type_, optional): _description_. Defaults to None.
         """
-        normy = lambda x: x/np.sqrt(np.dot(x, x))
         # Checks
         self._indexinthesystem(bond[0])
         self._indexinthesystem(bond[1])
@@ -483,7 +525,11 @@ class LocalModes():
         wrld2local[:3, 3] = cmass
         # print(wrld2local)
         return np.linalg.inv(wrld2local)
- 
+
+    def get_bondpointdata(self, bond: tp.Tuple[int, int]) -> dict:
+        """return the values read from fchk from a selected bond"""
+        return self._drv[bond].getpointvalues()
+
 
 class LocalConfs():
     """
