@@ -316,7 +316,6 @@ class LmodDeriv():
         return values
 
 
-
 class LocalModes():
     """Class to handle the local modes of a molecular system
     """

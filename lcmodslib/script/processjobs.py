@@ -92,7 +92,7 @@ def main():
     if opts.verboseinfo:
         for bnd in lmodesmol.bonds:
             tmp_data = lmodesmol.get_bondpointdata(bnd)
-            print(tmp_data['apt'])
+            # print(tmp_data['apt'])
             for key in tmp_data:
                 print(f"Printing: {key} bond {bnd[0]+1}-{bnd[1]+1}")
                 fname = f"{fout}_bond_{bnd[0]+1}_{bnd[1]+1}_{key}_dz.dat"

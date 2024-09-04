@@ -245,7 +245,7 @@ def write_dataarray(data: tp.Tuple[np.ndarray,
         nval = _tmpdata[0].flatten().shape[0]
     else:
         nval = 1
-    tmpl = "{:12.6f} " + "{:15.6E} " * (nval) + "\n"
+    tmpl = "{:12.6f} " + "{:18.10E} " * (nval) + "\n"
     for i in range(data[0].shape[0]):
-        string += tmpl.format(data[0][i], *_tmpdata.flatten())
+        string += tmpl.format(data[0][i], *_tmpdata[i].flatten())
     return string
