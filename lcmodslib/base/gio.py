@@ -151,19 +151,19 @@ def get_fchk(fname):
     res['eng'] = data['eng'].data
 
     try:
-        dkey = {'apt': QLabel(quantity=101, derorder=1)}
+        dkey = {'apt': QLabel(quantity=101, derorder=1, dercoord='x')}
         data = dfile.get_data(**dkey)
         res['apt'] = np.array(data['apt'].data).reshape(atmnum, 3, 3)
     except:
+        print("here")
         res['apt'] = None
         # res['aat'] = None
     try:
-        dkey = {'aat': QLabel(quantity=102, derorder=1)}
+        dkey = {'aat': QLabel(quantity=102, derorder=1, dercoord='x')}
         data = dfile.get_data(**dkey)
         res['aat'] = np.array(data['aat'].data).reshape(atmnum, 3, 3)
     except:
         res['aat'] = None
-
     return res
 
 
@@ -190,6 +190,7 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
     for bnd in bonds:
         # print(bnd)
         atype = hxobj.getsecatom(bnd)
+        # print(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*.fchk")
         lfiles = glob.glob(fname.format(atype, bnd[0]+1, bnd[1]+1)+"*.fchk")
         # print(lfiles)
         tmpres = {'eng': [], 'len': [],
@@ -213,7 +214,6 @@ def get_bondsdatatoobg(prefix, suffix, hxobj, nterms, selbnds=None):
             else:
                 tmpres['aat1'].append(None)
                 tmpres['aat2'].append(None)
-
         tmp_bond = LmodDeriv()
         tmp_bond.bond = bnd
         tmp_bond.eng = tmpres['eng']
